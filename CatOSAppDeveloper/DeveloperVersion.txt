@@ -1,0 +1,16 @@
+This Developer Version only can use in these versions:
+- CatOS v0.14 Release 2 (Only command apps)
+- CatOS v0.14 Release 3 Pre 1 (Only command apps)
+- CatOS v0.14 Release 3 Pre 2 (Only command apps)
+- CatOS v0.14 Release 3 Pre 3 (Only command apps)
+- CatOS v0.14 Release 3 Pre 4 (Command apps and Desktop GUI apps)
+
+Usage:
+- makece.bat <yourcode>
+- sh makece.sh <yourcode>
+
+## Windows quickly Vdisk mount
+- disk.py
+ choose your vhd/vhdx file and mount it
+ then copy the file into it
+ finally auto dismount the Vdisk.
