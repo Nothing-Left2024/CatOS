@@ -1,0 +1,427 @@
+# CatOS
+
+> Clean, 2026 7 12, China
+> 一个基于 x86 保护模式的教学型操作系统内核，从零开始实现引导、内核、进程、文件系统、图形桌面与用户程序生态。
+
+**版本**：v0.14 Release 3 Pre 3
+**许可证**：Apache License 2.0
+
+---
+
+## 目录
+
+- [简介](#简介)
+- [特性](#特性)
+- [项目结构](#项目结构)
+- [工具链要求](#工具链要求)
+- [构建](#构建)
+- [运行](#运行)
+- [Shell 命令](#shell-命令)
+- [图形桌面](#图形桌面)
+- [安装到硬盘](#安装到硬盘)
+- [用户程序开发 (SDK)](#用户程序开发-sdk)
+- [架构概述](#架构概述)
+- [故障排查](#故障排查)
+
+---
+
+## 简介
+
+CatOS 是一个 32 位 x86 保护模式操作系统，目标是清晰展示一个真实可运行的操作系统各层是如何协作的：从 BIOS 引导、加载器进入保护模式、内核初始化中断与进程，到 FAT 文件系统、控制台 Shell、图形桌面环境以及 Ring 3 用户程序加载。
+
+系统从 1.44MB FAT12 软盘启动，可在 QEMU / Bochs / VMware 中运行，并支持通过内置 `setup` 安装器将系统安装到硬盘（标准 MBR + FAT32 分区布局）。Shell 提示符会显示当前路径（如 `CatOS / > ` 或 `CatOS /test/ > `）。
+
+---
+
+## 特性
+
+- **引导链**：MBR → VBR → Loader → Kernel，全链路从实模式切换到保护模式并开启分页
+- **内核**：中断/异常处理、8259A PIC、时钟驱动、多任务调度（基于时钟片轮转）
+- **进程模型**：Ring 1 内核任务 + Ring 3 用户进程，基于 LDT 段级隔离
+- **控制台**：多 TTY、VGA 80x25 文本模式、键盘驱动（含扩展键）、鼠标支持（带灵敏度调节）
+- **图形模式**：VGA Mode 13h (320x200x256)，软件渲染原语（fill_rect、draw_string、字体）
+- **窗口管理器**：桌面环境含主窗口、文件管理器、计算器、终端、记事本编辑器，支持拖拽/最大化/最小化/关闭
+- **文件系统**：FAT12 / FAT16 / FAT32 三格式支持，IDE/ATA PIO 驱动，子目录导航（cd/mkdir）
+- **Shell**：20+ 内置命令，含任务管理器、文件编辑器、安装器，动态路径提示符
+- **用户程序生态**：CE 可执行格式 + SDK（crt0、链接脚本、打包工具、文件 IO API），可在系统中 `run` 用户程序
+- **安装器**：内置 `setup` 命令将系统安装到硬盘，生成标准 MBR + FAT32 布局
+
+---
+
+## 项目结构
+
+```
+CatOS/
+├── boot/                  # 引导代码
+│   ├── boot.asm           # FAT12 软盘引导扇区
+│   ├── hdboot.asm         # 硬盘 VBR 引导扇区
+│   ├── mbr.asm            # 标准 MBR（含分区表与引导代码）
+│   ├── loader.asm         # 加载器：进入保护模式、加载内核、开启分页
+│   └── include/           # 引导阶段头文件 (fat12hdr.inc, load.inc, pm.inc)
+│
+├── kernel/                # 内核源码
+│   ├── kernel.asm         # 内核入口、异常处理、中断入口
+│   ├── start.c            # cstart：GDT/IDT 初始化
+│   ├── main.c             # tinix_main：进程表初始化
+│   ├── protect.c          # 中断描述符、TSS、保护机制
+│   ├── proc.c             # 进程调度、切换
+│   ├── i8259.c            # 8259A PIC 驱动
+│   ├── clock.c            # 时钟中断处理
+│   ├── console.c          # 控制台、TTY、VGA 输出
+│   ├── tty.c              # TTY 抽象层
+│   ├── keyboard.c         # 键盘驱动（含 0xE0 扩展键）
+│   ├── mouse.c            # 鼠标驱动
+│   ├── hd.c               # IDE/ATA PIO 硬盘驱动
+│   ├── fat.c              # FAT12/16/32 文件系统（含子目录操作）
+│   ├── installer.c        # 硬盘安装器
+│   ├── editor.c           # 内置文本编辑器
+│   ├── taskmgr.c          # 任务管理器界面
+│   ├── shell.c            # 命令行 Shell
+│   ├── exec.c             # CE 用户程序加载器（支持指定目录）
+│   ├── gfx.c              # VGA Mode 13h 图形原语
+│   ├── wm.c               # 窗口管理器（桌面环境）
+│   ├── syscall.asm        # 系统调用入口 (int 0x90)
+│   ├── syscall_c.c        # 系统调用分发
+│   ├── printf.c / vsprintf.c  # 内核 printf
+│   └── global.c           # 全局变量定义
+│
+├── lib/                   # 内核库
+│   ├── klib.asm           # 内核汇编工具（disp_str、out_byte、IRQ 控制等）
+│   ├── klibc.c            # 内核 C 工具函数
+│   └── string.asm         # 字符串操作
+│
+├── include/               # 内核头文件
+│   ├── type.h, const.h    # 类型与常量
+│   ├── protect.h, proc.h  # 保护与进程结构
+│   ├── proto.h            # 函数原型
+│   ├── fat.h, hd.h        # 文件系统与硬盘接口
+│   ├── tty.h, console.h   # 控制台接口
+│   ├── keyboard.h, keymap.h, mouse.h
+│   ├── shell.h, editor.h, taskmgr.h
+│   ├── gfx.h              # 图形原语接口
+│   ├── wm.h               # 窗口管理器接口
+│   └── scont.inc          # 汇编常量
+│
+├── sdk/                   # 用户程序开发工具包
+│   ├── crt0.asm           # C 运行时启动代码
+│   ├── user.ld            # 用户程序链接脚本
+│   ├── mkcate.py          # CE 格式打包工具
+│   ├── Makefile           # SDK 构建脚本
+│   ├── app.c              # 示例程序
+│   ├── app.ce             # 示例 CE 可执行文件
+│   ├── makece.sh / makece.bat  # CE 打包脚本
+│   ├── disk.py            # 镜像文件注入工具
+│   ├── check.py           # CE 格式校验工具
+│   ├── DEVELOPER.md       # 开发者文档（详细）
+│   └── DEVELOPER.html / api.html  # 文档 HTML 版本
+│
+├── build.sh               # 主构建脚本
+├── kernel.ld              # 内核链接脚本
+├── bochsrc.bxrc           # Bochs 配置
+├── run.bat                # QEMU 启动脚本
+├── Makefile               # 历史遗留 Makefile（参考用）
+└── count.py               # 代码行数统计工具
+```
+
+---
+
+## 工具链要求
+
+| 工具 | 用途 | 备注 |
+|------|------|------|
+| **NASM** 2.13+ | 汇编引导/内核 ASM 源码 | 推荐 3.x |
+| **GCC** (支持 `-m32`) | 编译内核 C 源码 | 推荐 `i686-w64-mingw32-gcc` 或 MinGW |
+| **objcopy** | 提取纯二进制 | 随 binutils 提供 |
+| **Python** 3.6+ | 生成硬盘镜像、打包 CATE | |
+
+`build.sh` 会自动探测 MinGW 工具链，兼容 Git Bash / MINGW64 / WSL。
+
+---
+
+## 构建
+
+```bash
+# 完整构建并生成软盘镜像
+./build.sh image
+
+# 仅编译（不生成镜像）
+./build.sh
+
+# 清理所有构建产物
+./build.sh clean
+
+# 重新构建
+./build.sh rebuild
+
+# 生成 FAT16 硬盘镜像（10MB，文件浏览测试用）
+./build.sh hdimg
+
+# 生成 FAT32 硬盘镜像（256MB，标准 MBR 布局）
+./build.sh hdimg32
+```
+
+构建产物：
+- `boot/boot.bin` — 软盘引导扇区
+- `boot/loader.bin` — 加载器
+- `boot/mbr.bin` — 主引导记录
+- `kernel.bin` — 内核纯二进制
+- `catos.img` — 1.44MB FAT12 软盘镜像（可直接启动）
+- `catos_hd.img` / `catos_hd32.img` — 硬盘镜像
+
+**构建策略**：`build.sh` 采用两遍编译——第一遍用默认大小估算编译内核，第二遍用实际 `kernel.bin` 大小重新编译，使加载器能动态感知内核尺寸。
+
+---
+
+## 运行
+
+### 使用自己的硬盘(例如vhd,vhdx)挂载给虚拟机比 `catos_hd32.img` 效果好很多！
+
+### QEMU（推荐，启动最快）
+
+```bash
+# 软盘 + FAT32 硬盘（默认）(你也可以自己添加硬盘，然后执行setup，也可以)
+run.bat
+# 或手动：
+qemu-system-i386 -drive file=catos.img,if=floppy,format=raw \
+                 -drive file=catos_hd32.img,format=raw
+```
+
+### Bochs
+
+```bash
+bochs -f bochsrc.bxrc
+```
+
+`bochsrc.bxrc` 默认挂载 `catos.img` 为软盘、`catos_hd32.img` 为硬盘，从软盘启动。(你也可以自己添加硬盘，然后执行setup，也可以)
+
+### VMware
+
+将 `catos.img` 作为软盘镜像、`catos_hd32.img` 作为硬盘挂载，从软盘启动即可。(你也可以自己添加硬盘，然后执行setup，也可以)
+
+启动后会出现 `CatOS / > ` 提示符。
+
+---
+
+## Shell 命令
+
+提示符会显示当前路径：根目录 `CatOS / > `，子目录 `CatOS /test/ > `。
+
+| 命令 | 说明 |
+|------|------|
+| `help` | 显示命令帮助 |
+| `ver` / `version` | 显示版本信息 |
+| `about` | 关于 CatOS |
+| `clear` / `cls` | 清屏 |
+| `echo <text>` | 输出文本 |
+| `sysinfo` | 系统信息（内存、CPU 等） |
+| `taskmgr` | 任务管理器（查看运行中的进程） |
+| `diskinfo` | 磁盘与 FAT 文件系统信息 |
+| `dir` / `ls` | 列出当前目录文件 |
+| `cd [dir]` | 切换目录（`cd`/`cd \`/`cd /` 回根，`cd ..` 父目录，`cd <name>` 进入子目录） |
+| `mkdir <name>` | 创建子目录 |
+| `type <file>` | 显示文件内容 |
+| `format <drv> <type>` | 格式化磁盘（如 `format 1 32`） |
+| `touch <file>` | 创建空文件 |
+| `edit <file>` | 编辑文件（内置编辑器） |
+| `rd <file>` | 删除文件 |
+| `run <file.ce> [&]` | 运行 CE 用户程序（末尾 `&` 后台运行） |
+| `ps` | 列出运行中的进程 |
+| `cat` | 进入图形桌面环境（按 ESC 退出） |
+| `setup` | 交互式安装器（安装到硬盘） |
+| `reboot` | 重启系统 |
+| `shutdown` | 关机 |
+
+---
+
+## 图形桌面
+
+在 Shell 中输入 `cat` 即可进入图形桌面环境（VGA Mode 13h, 320x200x256），按 ESC 退出回到文本模式 Shell。
+
+### 桌面应用
+
+- **主窗口**：大图标排列，双击图标打开应用
+- **文件管理器**：浏览文件/文件夹，双击进入子目录，单击选中；双击 `.ce` 文件直接运行
+- **终端**：命令行界面，支持 `help`/`dir`/`cd`/`mkdir`/`type`/`touch`/`rd`/`edit`/`run`/`ps`/`sysinfo` 等命令，PageUp/PageDown 滚动回看历史
+- **记事本**：文本编辑器，支持打开/编辑/保存（Ctrl+S）文件，含 File 下拉菜单
+- **计算器**：基本四则运算
+- **关于**：显示系统信息
+
+### 控制台程序运行
+
+在文件管理器中双击 `.ce` 可执行文件，或在终端中使用 `run <file.ce>` 命令，系统会为程序分配一个独立的**控制台窗口**。程序的标准输出（`puts`/`putc`/`put_int` 等）会显示在该窗口中，键盘输入（`getch`/`getc`）也从该窗口获取。
+
+程序退出（调用 `exit` 或从 `main` 返回）后，控制台窗口不会立即关闭，而是显示：
+
+```
+Press any key to continue...
+```
+
+用户按下任意键后窗口才关闭。这样便于查看程序的最终输出结果。多个程序可同时运行，各自拥有独立的控制台窗口。
+
+### 窗口操作
+
+- 标题栏拖拽移动窗口
+- 右上角三按钮：最大化 / 最小化 / 关闭
+- 点击窗口激活并置顶
+- 最小化的窗口显示在底部任务栏，点击还原
+
+桌面终端与 Shell 各自维护独立的工作目录，互不影响。
+
+---
+
+## 安装到硬盘
+
+CatOS 可通过内置 `setup` 命令将自身安装到硬盘，使其能够从硬盘启动：
+
+1. 用软盘镜像启动 CatOS
+2. 在 Shell 中执行 `setup`
+3. 按照交互提示完成安装
+
+安装过程会：
+- 写入标准 MBR 到硬盘扇区 0
+- 格式化 FAT32 分区（分区起始 LBA 2048，1MB 对齐）
+- 将内核写入磁盘末尾（动态计算 LBA，避免被 FAT 表覆盖）
+- 将 VBR 中写入内核扇区数，加载器据此动态读取
+
+安装完成后可从硬盘启动，无需软盘。
+
+---
+
+## 用户程序开发 (SDK)
+
+CatOS 支持 CE（CatOS Executable）格式的用户程序，运行在 Ring 3。开发者无需重新编译内核即可分发软件。
+
+### 快速开始
+
+```bash
+cd sdk
+make           # 编译生成 app.ce
+```
+
+将 `app.ce` 放入 FAT 文件系统镜像后，在 Shell 中执行：
+
+```
+CatOS / > run app.ce
+```
+
+### 系统调用 API
+
+用户程序通过 `int 0x90` 软中断调用内核服务（节选，完整列表见 DEVELOPER.md）：
+
+| NR | 函数 | 原型 | 说明 |
+|----|------|------|------|
+| 0 | `get_ticks` | `int get_ticks(void)` | 系统时钟滴答数 |
+| 1 | `write` | `int write(char* buf, int len)` | 写入缓冲区到控制台 |
+| 2 | `putc` | `void putc(int ch)` | 输出单字符 |
+| 3 | `puts` | `void puts(char* str)` | 输出字符串 |
+| 4 | `getc` | `int getc(void)` | 非阻塞读键盘 |
+| 5 | `exit` | `void exit(int code)` | 终止程序 |
+| 6 | `clrscr` | `void clrscr(void)` | 清屏 |
+| 7 | `gotoxy` | `void gotoxy(int x, int y)` | 移动光标 |
+| 11 | `set_color` | `void set_color(int color)` | 设置默认颜色 |
+| 14 | `rand` | `int rand(void)` | 伪随机数 [0, 32767] |
+| 19 | `delay` | `void delay(int ms)` | 毫秒延时 |
+| 20 | `getch` | `int getch(void)` | 阻塞读键（含扩展键 0x100+code） |
+| 23+ | `file_read/write/delete/exists/size/list/append/stat` | 文件 IO |  |
+| 28 | `spawn` | `int spawn(char* name, int blocking)` | 启动另一个用户程序 |
+
+### 示例程序
+
+```c
+extern void puts(char* str);
+extern void putc(int ch);
+extern void exit(int code);
+
+int main(void)
+{
+    puts("Hello, CatOS!\n");
+    putc('A');
+    putc('\n');
+    exit(0);
+    return 0;
+}
+```
+
+详细开发指南（CE 格式、内存布局、段隔离、文件 IO、限制与注意事项）请参见 [sdk/DEVELOPER.md](sdk/DEVELOPER.md)。
+
+---
+
+## 架构概述
+
+### 启动流程
+
+```
+BIOS → MBR (扇区0) → VBR (分区起始) → Loader → Kernel (cstart → tinix_main)
+```
+
+1. **MBR**：标准 MBR，包含分区表与引导代码，跳转到活动分区的 VBR
+2. **VBR**：FAT12 软盘引导扇区 / FAT32 硬盘引导扇区，加载 Loader
+3. **Loader**：进入保护模式、读取内核到 `0x30400`、建立 GDT/IDT、开启分页、跳转内核
+4. **Kernel**：`cstart` 初始化 GDT/IDT/TSS，`tinix_main` 初始化进程表并启动调度
+
+### 内存布局
+
+| 地址 | 内容 |
+|------|------|
+| `0x00000 ~ 0x9FBFF` | 常规内存 |
+| `0x90000` 附近 | Loader 临时数据（GDT 等） |
+| `0x30400` | 内核入口（KernelEntryPointPhyAddr） |
+| `0x100000 ~ 0x180000` | 4 个用户进程区（各 128KB，槽位 i 基址 = `USER_PROC_BASE + i*USER_PROC_SIZE`） |
+| `0x180000 ~ 0x1A0000` | 文件缓冲区（file_buf） |
+| `0x1A0000 ~ 0x1C0000` | 任务栈区 |
+| `0xA0000` | VGA Mode 13h 显存（320x200x256） |
+
+### 特权级模型
+
+| 层 | 特权级 | 说明 |
+|----|--------|------|
+| 内核 | Ring 0 | GDT 中的代码/数据段 |
+| 内核任务 | Ring 1 | LDT 隔离，IOPL=2，可执行部分特权指令 |
+| 用户程序 | Ring 3 | LDT 隔离，IOPL=0，禁止访问硬件 |
+
+### 图形模式
+
+- 通过 `cat` 命令从文本模式（80x25）切换到 VGA Mode 13h（320x200x256）
+- `gfx.c` 提供软件渲染原语：`fill_rect`、`draw_string`、`vm_putc`、`gfx_scroll_up`
+- `wm.c` 实现窗口管理器：Z-order 调度、标题栏按钮、拖拽、任务栏
+- ESC 退出图形桌面回到文本模式 Shell
+
+---
+
+## 故障排查
+
+### 启动后无显示 / CPU 关机
+- 确认 `catos.img` 是最新构建（运行 `./build.sh image`）
+- VMware 中如遇虚拟 CPU 关机（Triple Fault），通常是 TSS 描述符 limit 设置错误或异常处理中段寄存器恢复不当
+
+### 内核构建后过大
+内核加载器限制为 512 扇区（256KB）。若 `kernel.bin` 超过此限制，需精简内核代码。
+
+### 硬盘安装失败 (HD error)
+- 确认硬盘镜像已正确挂载
+- 安装器会动态计算内核 LBA，确保 FAT32 已先格式化再写 MBR
+
+### 用户程序输出乱码
+裸机环境下 `.rodata` 段寻址在某些 GCC 版本下不可靠。改用全局数组定义字符串：
+
+```c
+static char msg[] = "Hello\n";   /* 放入 .data，寻址可靠 */
+puts(msg);
+```
+
+### 桌面终端 run 命令无响应
+桌面终端的 `run` 总是非阻塞启动程序（避免冻结 UI）。程序结束后控制台窗口会显示 "Press any key to continue..."，按键后关闭。如需前台阻塞行为，请使用文本模式 Shell 的 `run <file>`（不带 `&`）。
+
+### 子目录文件操作失败
+所有文件命令（`type`/`touch`/`rd`/`edit`/`run`）均在当前工作目录下查找文件。使用 `cd` 切换目录，`cd \` 或 `cd /` 回到根目录。
+
+### 更多历史经验
+项目积累的工程约定与教训见代码注释及提交历史。
+
+---
+
+## 许可证
+
+本项目基于 [Apache License 2.0](LICENCE.txt) 发布。
+
+Copyright 2026 Clean.

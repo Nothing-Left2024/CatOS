@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CatOS — 文档首页</title>
+<style>
+  :root {
+    --purple: #7c3aed;
+    --purple-dark: #5b21b6;
+    --purple-light: #a78bfa;
+    --purple-bg: #f5f3ff;
+    --bg: #ffffff;
+    --bg-secondary: #f8fafc;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+    --code-bg: #1e293b;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-lg: 0 4px 24px rgba(0,0,0,0.12);
+    --radius: 8px;
+    --sidebar-width: 260px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+
+  body {
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "HarmonyOS Sans", "Source Han Sans SC", sans-serif;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text);
+    background: var(--bg);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  a { color: var(--purple); text-decoration: none; }
+  a:hover { color: var(--purple-dark); text-decoration: underline; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar-brand {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-brand a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .sidebar-brand svg { flex-shrink: 0; }
+  .sidebar-brand h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--purple);
+    letter-spacing: 1px;
+  }
+  .sidebar-brand span {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: -2px;
+  }
+
+  .sidebar-nav {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-nav a svg { flex-shrink: 0; }
+  .sidebar-nav a:hover,
+  .sidebar-nav a.active {
+    color: var(--purple);
+    background: var(--purple-bg);
+    text-decoration: none;
+    border-left-color: var(--purple);
+  }
+  .sidebar-nav a.active { font-weight: 600; }
+
+  .sidebar-toc {
+    padding: 12px 0;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .sidebar-toc-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    padding: 8px 20px 4px;
+  }
+  .sidebar-toc a {
+    display: block;
+    padding: 5px 20px 5px 28px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sidebar-toc a:hover,
+  .sidebar-toc a.active {
+    color: var(--purple);
+    background: var(--purple-bg);
+    text-decoration: none;
+    border-left-color: var(--purple);
+  }
+
+  .sidebar-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* ── Main Content ── */
+  .main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    max-width: 960px;
+  }
+
+  .content {
+    padding: 40px 48px 80px;
+  }
+
+  /* ── Hamburger ── */
+  .hamburger {
+    display: none;
+    position: fixed;
+    top: 12px; left: 12px;
+    z-index: 200;
+    width: 40px; height: 40px;
+    border: none;
+    background: var(--bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+  .hamburger span {
+    display: block;
+    width: 24px; height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    position: relative;
+    transition: 0.3s;
+  }
+  .hamburger span::before,
+  .hamburger span::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 24px; height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: 0.3s;
+  }
+  .hamburger span::before { top: -7px; }
+  .hamburger span::after { top: 7px; }
+  .hamburger.open span { background: transparent; }
+  .hamburger.open span::before { top: 0; transform: rotate(45deg); }
+  .hamburger.open span::after { top: 0; transform: rotate(-45deg); }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 99;
+  }
+
+  /* ── Typography ── */
+  .content h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--purple-dark);
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--purple-bg);
+    scroll-margin-top: 24px;
+  }
+  .content h2:first-of-type { margin-top: 0; }
+
+  .content h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 12px;
+  }
+
+  .content h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 20px 0 8px;
+  }
+
+  .content p { margin: 12px 0; }
+
+  .content ul, .content ol {
+    margin: 8px 0 16px;
+    padding-left: 24px;
+  }
+  .content li { margin: 4px 0; }
+
+  .content hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  blockquote {
+    margin: 16px 0;
+    padding: 12px 20px;
+    border-left: 4px solid var(--purple-light);
+    background: var(--purple-bg);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+  blockquote p { margin: 0; }
+
+  strong { font-weight: 600; }
+
+  /* ── Code Blocks ── */
+  .code-wrapper {
+    position: relative;
+    margin: 16px 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .code-wrapper .copy-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    background: rgba(255,255,255,0.1);
+    color: #94a3b8;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.15s;
+    font-family: inherit;
+    opacity: 0;
+  }
+  .code-wrapper:hover .copy-btn { opacity: 1; }
+  .code-wrapper .copy-btn:hover {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+  }
+  .code-wrapper .copy-btn.copied {
+    background: #22c55e;
+    color: #fff;
+    border-color: #22c55e;
+  }
+  pre {
+    background: var(--code-bg);
+    color: #e2e8f0;
+    padding: 16px 20px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    border-left: 3px solid var(--purple);
+    tab-size: 4;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; border-radius: 0; }
+
+  code {
+    background: var(--purple-bg);
+    color: var(--purple-dark);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+    font-size: 13px;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  /* Syntax highlighting for code blocks */
+  .hljs-comment { color: #94a3b8; font-style: italic; }
+  .hljs-keyword { color: #fff; font-weight: 700; }
+  .hljs-string { color: #94a3b8; }
+  .hljs-number { color: #94a3b8; }
+  .hljs-function { color: #a78bfa; }
+  .hljs-title { color: #a78bfa; }
+  .hljs-built_in { color: #7c3aed; }
+  .hljs-type { color: #facc15; }
+  .hljs-attr { color: #a78bfa; }
+  .hljs-params { color: #e2e8f0; }
+  .hljs-literal { color: #facc15; }
+  .hljs-symbol { color: #facc15; }
+  .hljs-variable { color: #e2e8f0; }
+  .hljs-punctuation { color: #e2e8f0; }
+  .hljs-property { color: #a78bfa; }
+  .hljs-selector-class { color: #a78bfa; }
+  .hljs-selector-tag { color: #fff; font-weight: 700; }
+  .hljs-params { color: #e2e8f0; }
+  .hljs-meta { color: #94a3b8; }
+  .hljs-meta .hljs-keyword { color: #94a3b8; font-weight: 400; }
+  .hljs-meta .hljs-string { color: #94a3b8; }
+
+  /* ── Tables ── */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+    overflow-x: auto;
+    display: block;
+  }
+  .content table thead {
+    background: var(--purple);
+    color: #fff;
+  }
+  .content table th {
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .content table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .content table tbody tr:nth-child(even) {
+    background: var(--bg-secondary);
+  }
+  .content table tbody tr:hover {
+    background: var(--purple-bg);
+  }
+
+  /* ── Back to Top ── */
+  .back-to-top {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s;
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+    z-index: 50;
+  }
+  .back-to-top.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .back-to-top:hover {
+    background: var(--purple-dark);
+    transform: translateY(-2px);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    body { display: block; }
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .content { padding: 56px 20px 40px; }
+    .hamburger { display: flex; }
+    .overlay.open { display: block; }
+    .back-to-top { bottom: 20px; right: 20px; width: 40px; height: 40px; }
+    .content h2 { font-size: 20px; }
+    .sidebar-toc a { font-size: 14px; padding: 6px 20px 6px 28px; }
+  }
+
+  @media (max-width: 480px) {
+    .content { padding: 52px 16px 32px; }
+    .content table { font-size: 13px; }
+    .content table th,
+    .content table td { padding: 6px 8px; }
+  }
+
+  /* ── Version badge ── */
+  .version-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--purple-bg);
+    color: var(--purple);
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-left: 8px;
+  }
+
+  /* ── Section highlight ── */
+  .section-highlight {
+    animation: section-flash 1.2s ease-out;
+  }
+  @keyframes section-flash {
+    0%   { background: rgba(124,58,237,0.08); border-radius: 4px; }
+    100% { background: transparent; }
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 32px 0 24px;
+  }
+  .hero h2 {
+    font-size: 28px;
+    margin-top: 0 !important;
+    border: none !important;
+    color: var(--text) !important;
+  }
+  .hero .subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin: 8px 0 0;
+  }
+
+  /* Project tree */
+  .tree {
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    background: var(--bg-secondary);
+    padding: 16px 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    white-space: pre;
+    margin: 16px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- Hamburger -->
+<button class="hamburger" id="hamburger" aria-label="切换侧边栏">
+  <span></span>
+</button>
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <a href="index.html">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#7c3aed"/>
+        <text x="16" y="22" text-anchor="middle" fill="#fff" font-size="18" font-weight="bold" font-family="sans-serif">C</text>
+      </svg>
+      <div>
+        <h1>CatOS</h1>
+        <span>v0.14 Release 3 Pre 3</span>
+      </div>
+    </a>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="index.html" class="active">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6l6-4 6 4v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z"/><path d="M6 14V8h4v6"/></svg>
+      首页
+    </a>
+    <a href="developer.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2l4 4-4 4"/><path d="M6 14l-4-4 4-4"/></svg>
+      开发指南
+    </a>
+    <a href="api.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 11l3-6"/><circle cx="4" cy="11" r="1.5"/><circle cx="12" cy="5" r="1.5"/><path d="M8 5h3l2 2"/></svg>
+      API 参考
+    </a>
+  </nav>
+
+  <div class="sidebar-toc">
+    <div class="sidebar-toc-label">目录</div>
+    <a href="#intro">简介</a>
+    <a href="#features">特性</a>
+    <a href="#structure">项目结构</a>
+    <a href="#toolchain">工具链要求</a>
+    <a href="#build">构建</a>
+    <a href="#run">运行</a>
+    <a href="#shell">Shell 命令</a>
+    <a href="#desktop">图形桌面</a>
+    <a href="#install">安装到硬盘</a>
+    <a href="#sdk">用户程序开发</a>
+    <a href="#architecture">架构概述</a>
+    <a href="#troubleshooting">故障排查</a>
+  </div>
+
+  <div class="sidebar-footer">
+    Apache License 2.0 &middot; 2026
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main">
+  <div class="content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h2>CatOS</h2>
+      <p class="subtitle">一个基于 x86 保护模式的教学型操作系统内核，从零开始实现引导、内核、进程、文件系统、图形桌面与用户程序生态。</p>
+      <p style="margin-top:12px;font-size:14px;color:var(--text-secondary);">
+        Clean, 2026 年 7 月 &middot; 中国
+      </p>
+    </div>
+
+    <hr>
+
+    <!-- 1. 简介 -->
+    <h2 id="intro">简介</h2>
+    <p>CatOS 是一个 32 位 x86 保护模式操作系统，目标是清晰展示一个真实可运行的操作系统各层是如何协作的：从 BIOS 引导、加载器进入保护模式、内核初始化中断与进程，到 FAT 文件系统、控制台 Shell、图形桌面环境以及 Ring 3 用户程序加载。</p>
+    <p>系统从 1.44MB FAT12 软盘启动，可在 QEMU / Bochs / VMware 中运行，并支持通过内置 <code>setup</code> 安装器将系统安装到硬盘（标准 MBR + FAT32 分区布局）。Shell 提示符会显示当前路径（如 <code>CatOS / &gt;</code> 或 <code>CatOS /test/ &gt;</code>）。</p>
+
+    <hr>
+
+    <!-- 2. 特性 -->
+    <h2 id="features">特性</h2>
+    <ul>
+      <li><strong>引导链</strong>：MBR → VBR → Loader → Kernel，全链路从实模式切换到保护模式并开启分页</li>
+      <li><strong>内核</strong>：中断/异常处理、8259A PIC、时钟驱动、多任务调度（基于时钟片轮转）</li>
+      <li><strong>进程模型</strong>：Ring 1 内核任务 + Ring 3 用户进程，基于 LDT 段级隔离</li>
+      <li><strong>控制台</strong>：多 TTY、VGA 80x25 文本模式、键盘驱动（含扩展键）、鼠标支持（带灵敏度调节）</li>
+      <li><strong>图形模式</strong>：VGA Mode 13h (320x200x256)，软件渲染原语（fill_rect、draw_string、字体）</li>
+      <li><strong>窗口管理器</strong>：桌面环境含主窗口、文件管理器、计算器、终端、记事本编辑器，支持拖拽/最大化/最小化/关闭</li>
+      <li><strong>文件系统</strong>：FAT12 / FAT16 / FAT32 三格式支持，IDE/ATA PIO 驱动，子目录导航（cd/mkdir）</li>
+      <li><strong>Shell</strong>：20+ 内置命令，含任务管理器、文件编辑器、安装器，动态路径提示符</li>
+      <li><strong>用户程序生态</strong>：CE 可执行格式 + SDK（crt0、链接脚本、打包工具、文件 IO API），可在系统中 <code>run</code> 用户程序</li>
+      <li><strong>安装器</strong>：内置 <code>setup</code> 命令将系统安装到硬盘，生成标准 MBR + FAT32 布局</li>
+    </ul>
+
+    <hr>
+
+    <!-- 3. 项目结构 -->
+    <h2 id="structure">项目结构</h2>
+    <div class="tree">CatOS/
+├── boot/                  # 引导代码
+│   ├── boot.asm           # FAT12 软盘引导扇区
+│   ├── hdboot.asm         # 硬盘 VBR 引导扇区
+│   ├── mbr.asm            # 标准 MBR（含分区表与引导代码）
+│   ├── loader.asm         # 加载器：进入保护模式、加载内核、开启分页
+│   └── include/           # 引导阶段头文件
+│
+├── kernel/                # 内核源码
+│   ├── kernel.asm         # 内核入口、异常处理、中断入口
+│   ├── start.c            # cstart：GDT/IDT 初始化
+│   ├── main.c             # tinix_main：进程表初始化
+│   ├── protect.c          # 中断描述符、TSS、保护机制
+│   ├── proc.c             # 进程调度、切换
+│   ├── i8259.c            # 8259A PIC 驱动
+│   ├── clock.c            # 时钟中断处理
+│   ├── console.c          # 控制台、TTY、VGA 输出
+│   ├── tty.c              # TTY 抽象层
+│   ├── keyboard.c         # 键盘驱动（含 0xE0 扩展键）
+│   ├── mouse.c            # 鼠标驱动
+│   ├── hd.c               # IDE/ATA PIO 硬盘驱动
+│   ├── fat.c              # FAT12/16/32 文件系统
+│   ├── installer.c        # 硬盘安装器
+│   ├── editor.c           # 内置文本编辑器
+│   ├── taskmgr.c          # 任务管理器界面
+│   ├── shell.c            # 命令行 Shell
+│   ├── exec.c             # CE 用户程序加载器
+│   ├── gfx.c              # VGA Mode 13h 图形原语
+│   ├── wm.c               # 窗口管理器（桌面环境）
+│   ├── syscall.asm        # 系统调用入口 (int 0x90)
+│   ├── syscall_c.c        # 系统调用分发
+│   ├── printf.c / vsprintf.c  # 内核 printf
+│   └── global.c           # 全局变量定义
+│
+├── lib/                   # 内核库
+│   ├── klib.asm           # 内核汇编工具
+│   ├── klibc.c            # 内核 C 工具函数
+│   └── string.asm         # 字符串操作
+│
+├── include/               # 内核头文件
+├── sdk/                   # 用户程序开发工具包
+│   ├── crt0.asm           # C 运行时启动代码
+│   ├── user.ld            # 用户程序链接脚本
+│   ├── mkcate.py          # CE 格式打包工具
+│   ├── DEVELOPER.md       # 开发者文档（详细）
+│   └── DEVELOPER.html / api.html  # 文档 HTML 版本
+│
+├── build.sh               # 主构建脚本
+├── kernel.ld              # 内核链接脚本
+├── bochsrc.bxrc           # Bochs 配置
+├── run.bat                # QEMU 启动脚本
+├── Makefile               # 历史遗留 Makefile
+└── count.py               # 代码行数统计工具</div>
+
+    <hr>
+
+    <!-- 4. 工具链要求 -->
+    <h2 id="toolchain">工具链要求</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>工具</th>
+          <th>用途</th>
+          <th>备注</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>NASM</strong> 2.13+</td>
+          <td>汇编引导/内核 ASM 源码</td>
+          <td>推荐 3.x</td>
+        </tr>
+        <tr>
+          <td><strong>GCC</strong>（支持 <code>-m32</code>）</td>
+          <td>编译内核 C 源码</td>
+          <td>推荐 <code>i686-w64-mingw32-gcc</code> 或 MinGW</td>
+        </tr>
+        <tr>
+          <td><strong>objcopy</strong></td>
+          <td>提取纯二进制</td>
+          <td>随 binutils 提供</td>
+        </tr>
+        <tr>
+          <td><strong>Python</strong> 3.6+</td>
+          <td>生成硬盘镜像、打包 CATE</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+    <p><code>build.sh</code> 会自动探测 MinGW 工具链，兼容 Git Bash / MINGW64 / WSL。</p>
+
+    <hr>
+
+    <!-- 5. 构建 -->
+    <h2 id="build">构建</h2>
+    <div class="code-wrapper">
+      <button class="copy-btn" onclick="copyCode(this)">复制</button>
+      <pre><code><span class="hljs-comment"># 完整构建并生成软盘镜像</span>
+./build.sh image
+
+<span class="hljs-comment"># 仅编译（不生成镜像）</span>
+./build.sh
+
+<span class="hljs-comment"># 清理所有构建产物</span>
+./build.sh clean
+
+<span class="hljs-comment"># 重新构建</span>
+./build.sh rebuild
+
+<span class="hljs-comment"># 生成 FAT16 硬盘镜像（10MB，文件浏览测试用）</span>
+./build.sh hdimg
+
+<span class="hljs-comment"># 生成 FAT32 硬盘镜像（256MB，标准 MBR 布局）</span>
+./build.sh hdimg32</code></pre>
+    </div>
+
+    <h3>构建产物</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>文件</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>boot/boot.bin</code></td><td>软盘引导扇区</td></tr>
+        <tr><td><code>boot/loader.bin</code></td><td>加载器</td></tr>
+        <tr><td><code>boot/mbr.bin</code></td><td>主引导记录</td></tr>
+        <tr><td><code>kernel.bin</code></td><td>内核纯二进制</td></tr>
+        <tr><td><code>catos.img</code></td><td>1.44MB FAT12 软盘镜像（可直接启动）</td></tr>
+        <tr><td><code>catos_hd.img</code> / <code>catos_hd32.img</code></td><td>硬盘镜像</td></tr>
+      </tbody>
+    </table>
+    <p><strong>构建策略</strong>：<code>build.sh</code> 采用两遍编译——第一遍用默认大小估算编译内核，第二遍用实际 <code>kernel.bin</code> 大小重新编译，使加载器能动态感知内核尺寸。</p>
+
+    <hr>
+
+    <!-- 6. 运行 -->
+    <h2 id="run">运行</h2>
+
+    <h3>QEMU（推荐，启动最快）</h3>
+    <div class="code-wrapper">
+      <button class="copy-btn" onclick="copyCode(this)">复制</button>
+      <pre><code><span class="hljs-comment"># 软盘 + FAT32 硬盘（默认）</span>
+run.bat
+<span class="hljs-comment"># 或手动：</span>
+qemu-system-i386 -drive file=catos.img,if=floppy,format=raw \
+                 -drive file=catos_hd32.img,format=raw</code></pre>
+    </div>
+
+    <h3>Bochs</h3>
+    <div class="code-wrapper">
+      <button class="copy-btn" onclick="copyCode(this)">复制</button>
+      <pre><code>bochs -f bochsrc.bxrc</code></pre>
+    </div>
+    <p><code>bochsrc.bxrc</code> 默认挂载 <code>catos.img</code> 为软盘、<code>catos_hd32.img</code> 为硬盘，从软盘启动。</p>
+
+    <h3>VMware</h3>
+    <p>将 <code>catos.img</code> 作为软盘镜像、<code>catos_hd32.img</code> 作为硬盘挂载，从软盘启动即可。</p>
+    <p>启动后会出现 <code>CatOS / &gt;</code> 提示符。</p>
+
+    <hr>
+
+    <!-- 7. Shell 命令 -->
+    <h2 id="shell">Shell 命令</h2>
+    <p>提示符会显示当前路径：根目录 <code>CatOS / &gt;</code>，子目录 <code>CatOS /test/ &gt;</code>。</p>
+    <table>
+      <thead>
+        <tr>
+          <th>命令</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>help</code></td><td>显示命令帮助</td></tr>
+        <tr><td><code>ver</code> / <code>version</code></td><td>显示版本信息</td></tr>
+        <tr><td><code>about</code></td><td>关于 CatOS</td></tr>
+        <tr><td><code>clear</code> / <code>cls</code></td><td>清屏</td></tr>
+        <tr><td><code>echo &lt;text&gt;</code></td><td>输出文本</td></tr>
+        <tr><td><code>sysinfo</code></td><td>系统信息（内存、CPU 等）</td></tr>
+        <tr><td><code>taskmgr</code></td><td>任务管理器（查看运行中的进程）</td></tr>
+        <tr><td><code>diskinfo</code></td><td>磁盘与 FAT 文件系统信息</td></tr>
+        <tr><td><code>dir</code> / <code>ls</code></td><td>列出当前目录文件</td></tr>
+        <tr><td><code>cd [dir]</code></td><td>切换目录（<code>cd</code>/<code>cd \</code>/<code>cd /</code> 回根，<code>cd ..</code> 父目录，<code>cd &lt;name&gt;</code> 进入子目录）</td></tr>
+        <tr><td><code>mkdir &lt;name&gt;</code></td><td>创建子目录</td></tr>
+        <tr><td><code>type &lt;file&gt;</code></td><td>显示文件内容</td></tr>
+        <tr><td><code>format &lt;drv&gt; &lt;type&gt;</code></td><td>格式化磁盘（如 <code>format 1 32</code>）</td></tr>
+        <tr><td><code>touch &lt;file&gt;</code></td><td>创建空文件</td></tr>
+        <tr><td><code>edit &lt;file&gt;</code></td><td>编辑文件（内置编辑器）</td></tr>
+        <tr><td><code>rd &lt;file&gt;</code></td><td>删除文件</td></tr>
+        <tr><td><code>run &lt;file.ce&gt; [&amp;]</code></td><td>运行 CE 用户程序（末尾 <code>&amp;</code> 后台运行）</td></tr>
+        <tr><td><code>ps</code></td><td>列出运行中的进程</td></tr>
+        <tr><td><code>cat</code></td><td>进入图形桌面环境（按 ESC 退出）</td></tr>
+        <tr><td><code>setup</code></td><td>交互式安装器（安装到硬盘）</td></tr>
+        <tr><td><code>reboot</code></td><td>重启系统</td></tr>
+        <tr><td><code>shutdown</code></td><td>关机</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+
+    <!-- 8. 图形桌面 -->
+    <h2 id="desktop">图形桌面</h2>
+    <p>在 Shell 中输入 <code>cat</code> 即可进入图形桌面环境（VGA Mode 13h, 320x200x256），按 ESC 退出回到文本模式 Shell。</p>
+
+    <h3>桌面应用</h3>
+    <ul>
+      <li><strong>主窗口</strong>：大图标排列，双击图标打开应用</li>
+      <li><strong>文件管理器</strong>：浏览文件/文件夹，双击进入子目录，单击选中；双击 <code>.ce</code> 文件直接运行</li>
+      <li><strong>终端</strong>：命令行界面，支持 <code>help</code>/<code>dir</code>/<code>cd</code>/<code>mkdir</code>/<code>type</code>/<code>touch</code>/<code>rd</code>/<code>edit</code>/<code>run</code>/<code>ps</code>/<code>sysinfo</code> 等命令，PageUp/PageDown 滚动回看历史</li>
+      <li><strong>记事本</strong>：文本编辑器，支持打开/编辑/保存（Ctrl+S）文件，含 File 下拉菜单</li>
+      <li><strong>计算器</strong>：基本四则运算</li>
+      <li><strong>关于</strong>：显示系统信息</li>
+    </ul>
+
+    <h3>控制台程序运行</h3>
+    <p>在文件管理器中双击 <code>.ce</code> 可执行文件，或在终端中使用 <code>run &lt;file.ce&gt;</code> 命令，系统会为程序分配一个独立的<strong>控制台窗口</strong>。程序的标准输出（<code>puts</code>/<code>putc</code>/<code>put_int</code> 等）会显示在该窗口中，键盘输入（<code>getch</code>/<code>getc</code>）也从该窗口获取。</p>
+    <p>程序退出（调用 <code>exit</code> 或从 <code>main</code> 返回）后，控制台窗口不会立即关闭，而是显示：</p>
+    <div class="code-wrapper">
+      <button class="copy-btn" onclick="copyCode(this)">复制</button>
+      <pre><code>Press <span class="hljs-keyword">any</span> key to continue...</code></pre>
+    </div>
+    <p>用户按下任意键后窗口才关闭。这样便于查看程序的最终输出结果。多个程序可同时运行，各自拥有独立的控制台窗口。</p>
+
+    <h3>窗口操作</h3>
+    <ul>
+      <li>标题栏拖拽移动窗口</li>
+      <li>右上角三按钮：最大化 / 最小化 / 关闭</li>
+      <li>点击窗口激活并置顶</li>
+      <li>最小化的窗口显示在底部任务栏，点击还原</li>
+    </ul>
+    <p>桌面终端与 Shell 各自维护独立的工作目录，互不影响。</p>
+
+    <hr>
+
+    <!-- 9. 安装到硬盘 -->
+    <h2 id="install">安装到硬盘</h2>
+    <p>CatOS 可通过内置 <code>setup</code> 命令将自身安装到硬盘，使其能够从硬盘启动：</p>
+    <ol>
+      <li>用软盘镜像启动 CatOS</li>
+      <li>在 Shell 中执行 <code>setup</code></li>
+      <li>按照交互提示完成安装</li>
+    </ol>
+    <p>安装过程会：</p>
+    <ul>
+      <li>写入标准 MBR 到硬盘扇区 0</li>
+      <li>格式化 FAT32 分区（分区起始 LBA 2048，1MB 对齐）</li>
+      <li>将内核写入磁盘末尾（动态计算 LBA，避免被 FAT 表覆盖）</li>
+      <li>将 VBR 中写入内核扇区数，加载器据此动态读取</li>
+    </ul>
+    <p>安装完成后可从硬盘启动，无需软盘。</p>
+
+    <hr>
+
+    <!-- 10. 用户程序开发 (SDK) -->
+    <h2 id="sdk">用户程序开发 (SDK)</h2>
+    <p>CatOS 支持 CE（CatOS Executable）格式的用户程序，运行在 Ring 3。开发者无需重新编译内核即可分发软件。</p>
+
+    <h3>快速开始</h3>
+    <div class="code-wrapper">
+      <button class="copy-btn" onclick="copyCode(this)">复制</button>
+      <pre><code><span class="hljs-built_in">cd</span> sdk
+make           <span class="hljs-comment"># 编译生成 app.ce</span></code></pre>
+    </div>
+    <p>将 <code>app.ce</code> 放入 FAT 文件系统镜像后，在 Shell 中执行：</p>
+    <div class="code-wrapper">
+      <button class="copy-btn" onclick="copyCode(this)">复制</button>
+      <pre><code>CatOS / &gt; run app.ce</code></pre>
+    </div>
+
+    <h3>系统调用 API</h3>
+    <p>用户程序通过 <code>int 0x90</code> 软中断调用内核服务（节选，完整列表见 <a href="developer.html">开发指南</a>）：</p>
+    <table>
+      <thead>
+        <tr>
+          <th>NR</th>
+          <th>函数</th>
+          <th>原型</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td><td><code>get_ticks</code></td><td><code>int get_ticks(void)</code></td><td>系统时钟滴答数</td></tr>
+        <tr><td>1</td><td><code>write</code></td><td><code>int write(char* buf, int len)</code></td><td>写入缓冲区到控制台</td></tr>
+        <tr><td>2</td><td><code>putc</code></td><td><code>void putc(int ch)</code></td><td>输出单字符</td></tr>
+        <tr><td>3</td><td><code>puts</code></td><td><code>void puts(char* str)</code></td><td>输出字符串</td></tr>
+        <tr><td>4</td><td><code>getc</code></td><td><code>int getc(void)</code></td><td>非阻塞读键盘</td></tr>
+        <tr><td>5</td><td><code>exit</code></td><td><code>void exit(int code)</code></td><td>终止程序</td></tr>
+        <tr><td>6</td><td><code>clrscr</code></td><td><code>void clrscr(void)</code></td><td>清屏</td></tr>
+        <tr><td>7</td><td><code>gotoxy</code></td><td><code>void gotoxy(int x, int y)</code></td><td>移动光标</td></tr>
+        <tr><td>11</td><td><code>set_color</code></td><td><code>void set_color(int color)</code></td><td>设置默认颜色</td></tr>
+        <tr><td>14</td><td><code>rand</code></td><td><code>int rand(void)</code></td><td>伪随机数 [0, 32767]</td></tr>
+        <tr><td>19</td><td><code>delay</code></td><td><code>void delay(int ms)</code></td><td>毫秒延时</td></tr>
+        <tr><td>20</td><td><code>getch</code></td><td><code>int getch(void)</code></td><td>阻塞读键（含扩展键 0x100+code）</td></tr>
+        <tr><td>23+</td><td><code>file_*</code></td><td>-</td><td>文件 IO（read/write/delete/exists 等）</td></tr>
+        <tr><td>28</td><td><code>spawn</code></td><td><code>int spawn(char* name, int blocking)</code></td><td>启动另一个用户程序</td></tr>
+      </tbody>
+    </table>
+
+    <h3>示例程序</h3>
+    <div class="code-wrapper">
+      <button class="copy-btn" onclick="copyCode(this)">复制</button>
+      <pre><code><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">puts</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">exit</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span>;
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+{
+    puts(<span class="hljs-string">"Hello, CatOS!\n"</span>);
+    putc(<span class="hljs-string">'A'</span>);
+    putc(<span class="hljs-string">'\n'</span>);
+    <span class="hljs-built_in">exit</span>(<span class="hljs-number">0</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}</code></pre>
+    </div>
+    <p>详细开发指南（CE 格式、内存布局、段隔离、文件 IO、限制与注意事项）请参见 <a href="developer.html">开发指南</a>。</p>
+
+    <hr>
+
+    <!-- 11. 架构概述 -->
+    <h2 id="architecture">架构概述</h2>
+
+    <h3>启动流程</h3>
+    <div class="code-wrapper">
+      <button class="copy-btn" onclick="copyCode(this)">复制</button>
+      <pre><code>BIOS → MBR (扇区0) → VBR (分区起始) → Loader → Kernel (cstart → tinix_main)</code></pre>
+    </div>
+    <ol>
+      <li><strong>MBR</strong>：标准 MBR，包含分区表与引导代码，跳转到活动分区的 VBR</li>
+      <li><strong>VBR</strong>：FAT12 软盘引导扇区 / FAT32 硬盘引导扇区，加载 Loader</li>
+      <li><strong>Loader</strong>：进入保护模式、读取内核到 <code>0x30400</code>、建立 GDT/IDT、开启分页、跳转内核</li>
+      <li><strong>Kernel</strong>：<code>cstart</code> 初始化 GDT/IDT/TSS，<code>tinix_main</code> 初始化进程表并启动调度</li>
+    </ol>
+
+    <h3>内存布局</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>地址</th>
+          <th>内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>0x00000 ~ 0x9FBFF</code></td><td>常规内存</td></tr>
+        <tr><td><code>0x90000</code> 附近</td><td>Loader 临时数据（GDT 等）</td></tr>
+        <tr><td><code>0x30400</code></td><td>内核入口（KernelEntryPointPhyAddr）</td></tr>
+        <tr><td><code>0x100000 ~ 0x180000</code></td><td>4 个用户进程区（各 128KB，槽位 i 基址 = <code>USER_PROC_BASE + i*USER_PROC_SIZE</code>）</td></tr>
+        <tr><td><code>0x180000 ~ 0x1A0000</code></td><td>文件缓冲区（file_buf）</td></tr>
+        <tr><td><code>0x1A0000 ~ 0x1C0000</code></td><td>任务栈区</td></tr>
+        <tr><td><code>0xA0000</code></td><td>VGA Mode 13h 显存（320x200x256）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>特权级模型</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>层</th>
+          <th>特权级</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>内核</td><td>Ring 0</td><td>GDT 中的代码/数据段</td></tr>
+        <tr><td>内核任务</td><td>Ring 1</td><td>LDT 隔离，IOPL=2，可执行部分特权指令</td></tr>
+        <tr><td>用户程序</td><td>Ring 3</td><td>LDT 隔离，IOPL=0，禁止访问硬件</td></tr>
+      </tbody>
+    </table>
+
+    <h3>图形模式</h3>
+    <ul>
+      <li>通过 <code>cat</code> 命令从文本模式（80x25）切换到 VGA Mode 13h（320x200x256）</li>
+      <li><code>gfx.c</code> 提供软件渲染原语：<code>fill_rect</code>、<code>draw_string</code>、<code>vm_putc</code>、<code>gfx_scroll_up</code></li>
+      <li><code>wm.c</code> 实现窗口管理器：Z-order 调度、标题栏按钮、拖拽、任务栏</li>
+      <li>ESC 退出图形桌面回到文本模式 Shell</li>
+    </ul>
+
+    <hr>
+
+    <!-- 12. 故障排查 -->
+    <h2 id="troubleshooting">故障排查</h2>
+
+    <h3>启动后无显示 / CPU 关机</h3>
+    <ul>
+      <li>确认 <code>catos.img</code> 是最新构建（运行 <code>./build.sh image</code>）</li>
+      <li>VMware 中如遇虚拟 CPU 关机（Triple Fault），通常是 TSS 描述符 limit 设置错误或异常处理中段寄存器恢复不当</li>
+    </ul>
+
+    <h3>内核构建后过大</h3>
+    <p>内核加载器限制为 512 扇区（256KB）。若 <code>kernel.bin</code> 超过此限制，需精简内核代码。</p>
+
+    <h3>硬盘安装失败（HD error）</h3>
+    <ul>
+      <li>确认硬盘镜像已正确挂载</li>
+      <li>安装器会动态计算内核 LBA，确保 FAT32 已先格式化再写 MBR</li>
+    </ul>
+
+    <h3>用户程序输出乱码</h3>
+    <p>裸机环境下 <code>.rodata</code> 段寻址在某些 GCC 版本下不可靠。改用全局数组定义字符串：</p>
+    <div class="code-wrapper">
+      <button class="copy-btn" onclick="copyCode(this)">复制</button>
+      <pre><code><span class="hljs-type">static</span> <span class="hljs-type">char</span> msg[] = <span class="hljs-string">"Hello\n"</span>;   <span class="hljs-comment">/* 放入 .data，寻址可靠 */</span>
+puts(msg);</code></pre>
+    </div>
+
+    <h3>桌面终端 run 命令无响应</h3>
+    <p>桌面终端的 <code>run</code> 总是非阻塞启动程序（避免冻结 UI）。程序结束后控制台窗口会显示 "Press any key to continue..."，按键后关闭。如需前台阻塞行为，请使用文本模式 Shell 的 <code>run &lt;file&gt;</code>（不带 <code>&amp;</code>）。</p>
+
+    <h3>子目录文件操作失败</h3>
+    <p>所有文件命令（<code>type</code>/<code>touch</code>/<code>rd</code>/<code>edit</code>/<code>run</code>）均在当前工作目录下查找文件。使用 <code>cd</code> 切换目录，<code>cd \</code> 或 <code>cd /</code> 回到根目录。</p>
+
+    <h3>更多历史经验</h3>
+    <p>项目积累的工程约定与教训见代码注释及提交历史。</p>
+
+    <hr>
+
+    <!-- 许可证 -->
+    <h2 id="license">许可证</h2>
+    <p>本项目基于 <a href="/LICENCE.txt">Apache License 2.0</a> 发布。</p>
+    <p style="color:var(--text-secondary);font-size:14px;">Copyright 2026 Clean.</p>
+
+  </div>
+</main>
+
+<!-- Back to Top -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="回到顶部">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <path d="M10 16V4"/>
+    <path d="M4 10l6-6 6 6"/>
+  </svg>
+</button>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── Sidebar toggle ──
+  var sidebar = document.getElementById('sidebar');
+  var hamburger = document.getElementById('hamburger');
+  var overlay = document.getElementById('overlay');
+
+  function toggleSidebar() {
+    sidebar.classList.toggle('open');
+    hamburger.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+
+  hamburger.addEventListener('click', toggleSidebar);
+  overlay.addEventListener('click', toggleSidebar);
+
+  // ── Active section tracking ──
+  var tocLinks = document.querySelectorAll('.sidebar-toc a');
+  var sections = [];
+  tocLinks.forEach(function(link) {
+    var href = link.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      var el = document.getElementById(href.substring(1));
+      if (el) sections.push({ el: el, link: link });
+    }
+  });
+
+  function updateActiveSection() {
+    var scrollY = window.scrollY + 100;
+    var activeId = null;
+
+    for (var i = 0; i < sections.length; i++) {
+      var sec = sections[i];
+      var offset = sec.el.offsetTop;
+      var height = sec.el.offsetHeight;
+      if (scrollY >= offset && scrollY < offset + height) {
+        activeId = sec.link.getAttribute('href');
+      }
+    }
+
+    // If none matched, pick the last one above scroll position
+    if (!activeId && sections.length > 0) {
+      for (var i = sections.length - 1; i >= 0; i--) {
+        if (window.scrollY + 100 >= sections[i].el.offsetTop) {
+          activeId = sections[i].link.getAttribute('href');
+          break;
+        }
+      }
+    }
+
+    tocLinks.forEach(function(link) {
+      link.classList.toggle('active', link.getAttribute('href') === activeId);
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveSection);
+  window.addEventListener('resize', updateActiveSection);
+  updateActiveSection();
+
+  // ── Back to top button ──
+  var backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', function() {
+    backToTop.classList.toggle('visible', window.scrollY > 400);
+  });
+
+  // ── Copy button ──
+  window.copyCode = function(btn) {
+    var pre = btn.parentElement.querySelector('pre');
+    var text = pre.textContent || pre.innerText;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = '已复制';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = '复制';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    } else {
+      // Fallback
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = '已复制';
+      btn.classList.add('copied');
+      setTimeout(function() {
+        btn.textContent = '复制';
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+  };
+
+})();
+</script>
+</body>
+</html>

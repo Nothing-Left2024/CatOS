@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CatOS API 参考</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+    background: #f5f7fa; color: #1e293b;
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "HarmonyOS Sans", "Source Han Sans SC", sans-serif;
+    line-height: 1.6; font-size: 15px; scroll-behavior: smooth;
+}
+.container { max-width: 860px; margin: 0 0 0 260px; padding: 20px 40px 80px 40px; min-height: 100vh; }
+header { padding: 30px 0 20px 0; border-bottom: 2px solid #e9eef2; margin-bottom: 30px; }
+header h1 { font-size: 28px; letter-spacing: 1px; padding-bottom: 10px; color: #1e293b; }
+header .subtitle { color: #64748b; margin-top: 8px; font-size: 14px; }
+.sidebar {
+    position: fixed; top: 0; left: 0; width: 260px; height: 100vh; background: #fff;
+    border-right: 1px solid #e2e8f0; overflow-y: auto; z-index: 150; box-shadow: 1px 0 3px rgba(0,0,0,0.04);
+}
+.sidebar .brand {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.sidebar .brand a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+.sidebar .brand svg { flex-shrink: 0; }
+.sidebar .nav-links { list-style: none; padding: 0 0 12px 0; margin: 0 0 8px 0; border-bottom: 1px solid #e2e8f0; }
+.sidebar .nav-links li a {
+    display: block; padding: 8px 24px; color: #64748b; text-decoration: none; font-size: 14px;
+    border-left: 3px solid transparent; transition: all 0.15s;
+}
+.sidebar .nav-links li a:hover { background: #f5f3ff; color: #7c3aed; }
+.sidebar .nav-links li a.active { color: #7c3aed; background: #f5f3ff; border-left-color: #7c3aed; font-weight: 600; }
+.sidebar .toc-title { color: #94a3b8; font-size: 11px; padding: 4px 24px 8px 24px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
+.sidebar ol.toc { list-style: none; counter-reset: toc-counter; padding: 0; margin: 0; }
+.sidebar ol.toc li { counter-increment: toc-counter; margin: 0; }
+.sidebar ol.toc li::before { content: counter(toc-counter) "."; color: #94a3b8; margin-right: 8px; font-variant-numeric: tabular-nums; font-size: 12px; }
+.sidebar ol.toc li a {
+    display: block; padding: 5px 24px 5px 16px; color: #64748b; text-decoration: none; font-size: 13px;
+    line-height: 1.4; border-left: 3px solid transparent; transition: all 0.15s;
+}
+.sidebar ol.toc li a:hover { background: #f5f3ff; color: #7c3aed; }
+.sidebar ol.toc li a.active { color: #7c3aed; background: #f5f3ff; border-left-color: #7c3aed; font-weight: 600; }
+.sidebar ul.api-list { list-style: none; padding: 0; margin: 0; }
+.sidebar ul.api-list li a {
+    display: block; padding: 3px 24px 3px 44px; color: #94a3b8; text-decoration: none; font-size: 12px;
+    line-height: 1.4; font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+    border-left: 3px solid transparent; transition: all 0.15s ease;
+}
+.sidebar ul.api-list li a:hover { background: #f1f5f9; color: #7c3aed; }
+.sidebar ul.api-list li a.active { color: #7c3aed; background: #f5f3ff; border-left-color: #7c3aed; font-weight: 600; }
+.sidebar .cat-group { margin-bottom: 2px; }
+.menu-toggle {
+    display: none; position: fixed; top: 12px; left: 12px; width: 40px; height: 40px;
+    background: #fff; color: #1e293b; border: 1px solid #e2e8f0; font-size: 20px; cursor: pointer;
+    z-index: 200; line-height: 1; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 140; }
+.sidebar-overlay.show { display: block; }
+h1, h2, h3, h4 { font-family: inherit; }
+h1 { font-size: 26px; padding-bottom: 10px; margin-top: 40px; border-bottom: 2px solid #e9eef2; color: #0f172a; }
+h2 { font-size: 22px; padding-bottom: 8px; margin-top: 36px; margin-bottom: 16px; border-bottom: 2px solid #7c3aed; color: #0f172a; }
+h3 { font-size: 18px; margin-top: 28px; margin-bottom: 12px; color: #0f172a; padding-bottom: 4px; border-bottom: 1px solid #e9eef2; }
+h4 { font-size: 14px; margin-top: 18px; margin-bottom: 8px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+p { margin: 10px 0; color: #334155; }
+a { color: #7c3aed; text-decoration: none; padding: 1px 2px; transition: color 0.15s ease; }
+a:hover { color: #5b21b6; text-decoration: underline; text-underline-offset: 2px; }
+strong, b { color: #0f172a; font-weight: 600; }
+code { background: #f1f5f9; padding: 2px 6px; font-size: 0.9em; font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace; border: 1px solid #e2e8f0; border-radius: 3px; color: #7c3aed; }
+p code { color: #7c3aed; }
+pre {
+    background: #f8fafc; border-left: 3px solid #7c3aed; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0; padding: 14px; margin: 12px 0; overflow-x: auto; position: relative;
+    font-size: 13px; line-height: 1.5; font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace; border-radius: 0 6px 6px 0;
+}
+pre code { background: transparent; border: none; padding: 0; font-size: inherit; color: #1e293b; white-space: pre; }
+.code-block { position: relative; margin: 12px 0; }
+.code-block pre { margin: 0; }
+.copy-btn {
+    position: absolute; top: 8px; right: 8px; background: #fff; color: #64748b; border: 1px solid #e2e8f0;
+    padding: 3px 10px; font-size: 11px; font-family: inherit; cursor: pointer; opacity: 0;
+    transition: opacity 0.2s; z-index: 5; border-radius: 4px;
+}
+.code-block:hover .copy-btn { opacity: 1; }
+.copy-btn:hover { background: #f1f5f9; color: #7c3aed; border-color: #7c3aed; }
+.copy-btn.copied { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+.hl-comment { color: #6b7280; font-style: italic; }
+.hl-keyword { color: #7c3aed; font-weight: 600; }
+.hl-string { color: #059669; }
+.hl-number { color: #2563eb; }
+.table-wrap { overflow-x: auto; margin: 12px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid #e2e8f0; }
+th { background: #7c3aed; font-weight: 600; color: #fff; }
+tr:nth-child(even) { background: #fafbfc; }
+tr:hover { background: #f5f3ff; }
+blockquote { border-left: 4px solid #a78bfa; background: #f5f3ff; color: #64748b; padding: 12px 20px; margin: 16px 0; border-radius: 0 6px 6px 0; font-size: 14px; }
+blockquote p { margin: 6px 0; color: #64748b; }
+blockquote strong { color: #7c3aed; }
+blockquote code { background: #ede9fe; border-color: #ddd6fe; color: #5b21b6; }
+ul, ol { margin: 10px 0; padding-left: 28px; }
+li { margin: 4px 0; color: #334155; }
+.api-meta { color: #64748b; font-size: 13px; margin: 6px 0 12px 0; padding: 8px 12px; background: #f8fafc; border-left: 3px solid #7c3aed; border-radius: 0 4px 4px 0; }
+.api-meta strong { color: #7c3aed; }
+hr { border: none; border-top: 1px solid #e2e8f0; margin: 30px 0; }
+.back-to-top {
+    position: fixed; bottom: 32px; right: 32px; width: 44px; height: 44px; background: #7c3aed; color: #fff;
+    border: none; font-family: inherit; font-size: 18px; cursor: pointer; opacity: 0;
+    transform: translateY(16px); pointer-events: none;
+    z-index: 200; transition: all 0.25s; border-radius: 50%; box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+.back-to-top.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.back-to-top:hover { background: #5b21b6; transform: translateY(-2px); box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+section[id], h2[id], h3[id] { scroll-margin-top: 60px; }
+@media (max-width: 900px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+    .sidebar.open { transform: translateX(0); }
+    .menu-toggle { display: block; }
+    .container { margin-left: 0; max-width: 100%; padding: 60px 16px 80px 16px; }
+}
+@media (max-width: 600px) {
+    html, body { font-size: 14px; }
+    .container { padding: 56px 12px 80px 12px; }
+    header h1 { font-size: 22px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 16px; }
+    pre { font-size: 12px; padding: 10px; }
+    table { font-size: 12px; }
+    th, td { padding: 5px; }
+    .back-to-top { bottom: 20px; right: 20px; width: 40px; height: 40px; }
+}
+</style>
+</head>
+<body>
+
+<button class="back-to-top" id="backToTop" title="回到顶部">↑</button>
+<button class="menu-toggle" id="menuToggle" title="目录">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <a href="index.html">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#7c3aed"/>
+          <text x="16" y="22" text-anchor="middle" fill="#fff" font-size="18" font-weight="bold" font-family="sans-serif">C</text>
+        </svg>
+        <div>
+          <div style="font-size:22px;font-weight:700;color:#7c3aed;letter-spacing:1px;">CatOS</div>
+          <div style="font-size:12px;color:#64748b;margin-top:-2px;">API 参考</div>
+        </div>
+      </a>
+    </div>
+    <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="developer.html">开发指南</a></li>
+        <li><a href="api.html" class="active">API 参考</a></li>
+    </ul>
+    <div class="toc-title">API 分类</div>
+    <ol class="toc">
+        <li class="cat-group"><a href="#cat-console">控制台输出</a>
+            <ul class="api-list">
+                <li><a href="#api-write">write</a></li><li><a href="#api-putc">putc</a></li><li><a href="#api-puts">puts</a></li>
+                <li><a href="#api-set_color">set_color</a></li><li><a href="#api-putc_color">putc_color</a></li>
+                <li><a href="#api-put_int">put_int</a></li><li><a href="#api-put_uint">put_uint</a></li>
+                <li><a href="#api-put_hex">put_hex</a></li><li><a href="#api-put_bin">put_bin</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-keyboard">键盘输入</a>
+            <ul class="api-list">
+                <li><a href="#api-getc">getc</a></li><li><a href="#api-getch">getch</a></li>
+                <li><a href="#api-kbhit">kbhit</a></li><li><a href="#api-get_key_flags">get_key_flags</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-screen">屏幕控制</a>
+            <ul class="api-list">
+                <li><a href="#api-clrscr">clrscr</a></li><li><a href="#api-gotoxy">gotoxy</a></li>
+                <li><a href="#api-get_xy">get_xy</a></li><li><a href="#api-get_cols">get_cols</a></li>
+                <li><a href="#api-get_rows">get_rows</a></li><li><a href="#api-get_vmode">get_vmode</a></li>
+                <li><a href="#api-scroll">scroll</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-file">文件 IO</a>
+            <ul class="api-list">
+                <li><a href="#api-set_io_size">set_io_size</a></li><li><a href="#api-file_read">file_read</a></li>
+                <li><a href="#api-file_write">file_write</a></li><li><a href="#api-file_delete">file_delete</a></li>
+                <li><a href="#api-file_exists">file_exists</a></li><li><a href="#api-file_size">file_size</a></li>
+                <li><a href="#api-file_list">file_list</a></li><li><a href="#api-file_append">file_append</a></li>
+                <li><a href="#api-file_stat">file_stat</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-sysinfo">系统信息</a>
+            <ul class="api-list">
+                <li><a href="#api-get_ticks">get_ticks</a></li><li><a href="#api-get_pid">get_pid</a></li>
+                <li><a href="#api-get_name">get_name</a></li><li><a href="#api-rand">rand</a></li>
+                <li><a href="#api-srand">srand</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-sysctl">系统控制</a>
+            <ul class="api-list">
+                <li><a href="#api-exit">exit</a></li><li><a href="#api-msleep">msleep</a></li>
+                <li><a href="#api-reboot">reboot</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-proc">进程管理</a>
+            <ul class="api-list">
+                <li><a href="#api-spawn">spawn</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-uconsole">用户控制台</a>
+            <ul class="api-list">
+                <li><a href="#api-uc_putc">uc_putc</a></li><li><a href="#api-uc_clear">uc_clear</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-window">窗口 API</a>
+            <ul class="api-list">
+                <li><a href="#api-win_create">win_create</a></li><li><a href="#api-win_close">win_close</a></li>
+                <li><a href="#api-win_draw_text">win_draw_text</a></li><li><a href="#api-win_draw_rect">win_draw_rect</a></li>
+                <li><a href="#api-win_get_event">win_get_event</a></li><li><a href="#api-win_clear">win_clear</a></li>
+                <li><a href="#api-win_set_title">win_set_title</a></li><li><a href="#api-win_draw_line">win_draw_line</a></li>
+                <li><a href="#api-win_set_pixel">win_set_pixel</a></li><li><a href="#api-win_peek_event">win_peek_event</a></li>
+                <li><a href="#api-win_get_size">win_get_size</a></li><li><a href="#api-win_set_closable">win_set_closable</a></li>
+                <li><a href="#api-win_get_closable">win_get_closable</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-conv">类型转换</a>
+            <ul class="api-list">
+                <li><a href="#api-int_to_str">int_to_str</a></li><li><a href="#api-atoi">atoi</a></li>
+            </ul>
+        </li>
+        <li class="cat-group"><a href="#cat-string">字符串工具</a>
+            <ul class="api-list">
+                <li><a href="#api-strlen">strlen</a></li><li><a href="#api-strcmp">strcmp</a></li>
+                <li><a href="#api-strcpy">strcpy</a></li><li><a href="#api-memcpy">memcpy</a></li>
+                <li><a href="#api-memset">memset</a></li>
+            </ul>
+        </li>
+    </ol>
+</aside>
+
+<div class="container">
+    <header>
+        <h1>CatOS API 参考</h1>
+        <div class="subtitle">CatOS 用户程序系统调用完整参考。共 55 个系统调用（NR 0~54）+ 5 个 crt0 内置字符串工具函数，按功能类别分组。每个 API 均包含原型、参数、返回值与可运行示例。</div>
+    </header>
+
+    <blockquote>
+        <p><strong>调用约定</strong>：用户程序通过 <code>int 0x90</code> 软中断发起系统调用。<code>eax</code>=系统调用号，<code>ebx</code>=第一参数，<code>ecx</code>=第二参数，返回值在 <code>eax</code>。C 代码中只需 <code>extern</code> 声明即可调用，crt0 已封装寄存器传递细节。</p>
+        <p><strong>三参数函数</strong>：<code>file_read</code>/<code>file_write</code>/<code>file_list</code>/<code>file_append</code>/<code>int_to_str</code> 会先调用 <code>set_io_size</code> 传递第三参数（由 crt0 自动处理，C 代码直接调用即可）。</p>
+        <p><strong>头文件</strong>：CatOS SDK 不提供标准头文件，使用前需 <code>extern</code> 声明函数原型。</p>
+    </blockquote>
+
+    <h2 id="cat-console">控制台输出</h2>
+    <p>本组函数用于向控制台输出文本与数值。所有输出均受 <code>set_color</code> 设定的颜色影响，并自动适配文本/图形两种视频模式。</p>
+
+    <section id="api-write">
+    <h3>write</h3>
+    <p>原型：<code>int write(char* buf, int len)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 1 | <strong>分类</strong>: 控制台输出</div>
+    <h4>描述</h4>
+    <p>将指定长度的字节缓冲区写入控制台输出。按 <code>set_color</code> 设定的当前颜色属性显示，可包含任意字节（含非可见字符）。</p>
+    <h4>参数</h4>
+    <ul><li><code>buf</code> (char*): 要写入的字符串/字节缓冲区指针（段内偏移）</li><li><code>len</code> (int): 要写入的字节数</li></ul>
+    <h4>返回值</h4>
+    <p>实际写入控制台的字节数。通常等于 <code>len</code>。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int write(char* buf, int len);
+
+static char msg[] = "Hello, CatOS!\n";
+write(msg, 14);          /* 输出: Hello, CatOS! */
+
+write("ABC", 3);         /* 输出: ABC */
+write("a\tb\n", 4);     /* 输出含制表符与换行 */</code></pre></div>
+    <h4>备注</h4>
+    <p><code>buf</code> 是段内偏移，内核自动将其转换为线性地址（<code>USER_PROC_BASE + 偏移</code>）。<code>len</code> 不应超过缓冲区实际长度，否则可能输出段内随机数据。</p>
+    </section>
+
+    <section id="api-putc">
+    <h3>putc</h3>
+    <p>原型：<code>void putc(int ch)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 2 | <strong>分类</strong>: 控制台输出</div>
+    <h4>描述</h4>
+    <p>输出单个字符到控制台，按 <code>set_color</code> 设定的当前颜色显示。</p>
+    <h4>参数</h4>
+    <ul><li><code>ch</code> (int): 要输出的字符 ASCII 码（仅低 8 位有效）</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void putc(int ch);
+
+putc('A');       /* 输出: A */
+putc('\n');      /* 换行 */
+putc(65);        /* 输出: A (ASCII 65) */
+putc('0' + 5);   /* 输出: 5 */</code></pre></div>
+    <h4>备注</h4>
+    <p>图形模式（VGA Mode 13h）下，字符 ASCII &lt;32 或 &gt;127 会显示为 <code>'?'</code>。文本模式下按对应控制字符处理（如 <code>\n</code> 换行、<code>\r</code> 回车、<code>\t</code> 制表符等）。</p>
+    </section>
+
+    <section id="api-puts">
+    <h3>puts</h3>
+    <p>原型：<code>void puts(char* str)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 3 | <strong>分类</strong>: 控制台输出</div>
+    <h4>描述</h4>
+    <p>输出以 <code>\0</code> 结尾的字符串到控制台。<strong>不会自动追加换行</strong>，需在字符串中显式包含 <code>\n</code>。</p>
+    <h4>参数</h4>
+    <ul><li><code>str</code> (char*): 以 <code>\0</code> 结尾的字符串指针</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void puts(char* str);
+
+puts("Hello, CatOS!");          /* 输出后不换行 */
+puts("换行需手动添加\n");        /* 输出含换行 */
+
+static char greeting[] = "Hi\n";
+puts(greeting);                 /* 使用全局数组 */</code></pre></div>
+    <h4>备注</h4>
+    <p><code>str</code> 必须以 <code>\0</code> 结尾，否则会越界读取直到遇到 <code>\0</code>。建议使用全局数组定义字符串以保证可靠性。</p>
+    </section>
+
+    <section id="api-set_color">
+    <h3>set_color</h3>
+    <p>原型：<code>void set_color(int color)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 12 | <strong>分类</strong>: 控制台输出</div>
+    <h4>描述</h4>
+    <p>设置后续 <code>putc</code>、<code>puts</code>、<code>write</code>、<code>put_int</code>、<code>put_uint</code>、<code>put_hex</code>、<code>put_bin</code> 输出的默认颜色属性。</p>
+    <h4>参数</h4>
+    <ul><li><code>color</code> (int): 属性字节，高 4 位背景色，低 4 位前景色</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void set_color(int color);
+extern void puts(char* str);
+
+set_color(0x0F);   /* 黑底亮白 (默认) */
+puts("白字\n");
+
+set_color(0x1E);   /* 蓝底黄字 */
+puts("黄字\n");
+
+set_color(0x4E);   /* 红底黄字 */
+puts("警告\n");
+
+set_color(0x0A);   /* 黑底亮绿 */
+puts("成功\n");</code></pre></div>
+    <h4>备注</h4>
+    <p>常用属性值：<code>0x0F</code>=黑底亮白，<code>0x1E</code>=蓝底黄字，<code>0x4E</code>=红底黄字，<code>0x0A</code>=黑底亮绿，<code>0x0C</code>=黑底亮红，<code>0x0B</code>=黑底亮青。</p>
+    <p>颜色编码：前景 0~7 暗色，8~15 亮色；背景只能用 0~7。设置后对所有后续输出生效，直到再次调用 <code>set_color</code>。<code>putc_color</code> 不受此设置影响。</p>
+    </section>
+
+    <section id="api-putc_color">
+    <h3>putc_color</h3>
+    <p>原型：<code>void putc_color(int ch, int color)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 13 | <strong>分类</strong>: 控制台输出</div>
+    <h4>描述</h4>
+    <p>输出一个带指定颜色的字符，<strong>不改变</strong> <code>set_color</code> 设定的默认颜色属性。适合在统一文本中插入彩色单字。</p>
+    <h4>参数</h4>
+    <ul><li><code>ch</code> (int): 字符 ASCII 码</li><li><code>color</code> (int): 属性字节（高 4 位背景，低 4 位前景）</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void putc_color(int ch, int color);
+extern void putc(int ch);
+
+/* 彩色输出 "CatOS" */
+putc_color('C', 0x0C);   /* 亮红 */
+putc_color('a', 0x0A);   /* 亮绿 */
+putc_color('t', 0x0B);   /* 亮青 */
+putc_color('O', 0x0E);   /* 黄 */
+putc_color('S', 0x0D);   /* 亮洋红 */
+putc('\n');</code></pre></div>
+    <h4>备注</h4>
+    <p>调用后默认颜色不变，后续 <code>putc</code> / <code>puts</code> 仍使用之前 <code>set_color</code> 的设置。</p>
+    </section>
+
+    <section id="api-put_int">
+    <h3>put_int</h3>
+    <p>原型：<code>void put_int(int n)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 18 | <strong>分类</strong>: 控制台输出</div>
+    <h4>描述</h4>
+    <p>输出有符号十进制整数到控制台。负数前输出 <code>'-'</code>。</p>
+    <h4>参数</h4>
+    <ul><li><code>n</code> (int): 要输出的有符号整数</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void put_int(int n);
+extern void putc(int ch);
+
+put_int(-42);          /* 输出: -42 */
+putc(' ');
+put_int(0);            /* 输出: 0 */
+putc(' ');
+put_int(2147483647);   /* 输出: 2147483647 (INT_MAX) */
+putc('\n');</code></pre></div>
+    <h4>备注</h4>
+    <p>使用当前 <code>set_color</code> 颜色输出。输出后不换行，需手动 <code>putc('\n')</code>。如需将数字写入缓冲区（用于文件等），请使用 <code>int_to_str</code>。</p>
+    </section>
+
+    <section id="api-put_uint">
+    <h3>put_uint</h3>
+    <p>原型：<code>void put_uint(unsigned int n)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 19 | <strong>分类</strong>: 控制台输出</div>
+    <h4>描述</h4>
+    <p>输出无符号十进制整数。适用于超过 <code>INT_MAX</code> 的大值。</p>
+    <h4>参数</h4>
+    <ul><li><code>n</code> (unsigned int): 要输出的无符号整数</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void put_uint(unsigned int n);
+extern void putc(int ch);
+
+put_uint(0u);               /* 输出: 0 */
+putc(' ');
+put_uint(42u);              /* 输出: 42 */
+putc(' ');
+put_uint(4000000000u);      /* 输出: 4000000000 */
+putc('\n');</code></pre></div>
+    <h4>备注</h4>
+    <p>对于 <code>0x80000000</code>~<code>0xFFFFFFFF</code> 范围的值，若用 <code>put_int</code> 会输出负数，用 <code>put_uint</code> 才能正确显示无符号值。调用时注意加 <code>u</code> 后缀。</p>
+    </section>
+
+    <section id="api-put_hex">
+    <h3>put_hex</h3>
+    <p>原型：<code>void put_hex(unsigned int n, int upper)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 20 | <strong>分类</strong>: 控制台输出</div>
+    <h4>描述</h4>
+    <p>输出十六进制表示。<strong>不含</strong> <code>0x</code> 前缀，需自行添加。</p>
+    <h4>参数</h4>
+    <ul><li><code>n</code> (unsigned int): 要输出的值</li><li><code>upper</code> (int): 1=大写 <code>A-F</code>，0=小写 <code>a-f</code></li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void put_hex(unsigned int n, int upper);
+extern void puts(char* str);
+
+puts("0x"); put_hex(0xDEADBEEFu, 1);   /* 输出: 0xDEADBEEF */
+puts(" / 0x"); put_hex(0xdeadbeefu, 0); /* 输出: 0xdeadbeef */
+put_hex(0xFF, 1);                       /* 输出: FF */
+put_hex(0xFF, 0);                       /* 输出: ff */</code></pre></div>
+    <h4>备注</h4>
+    <p><code>0</code> 输出 <code>"0"</code>。不含前导零（例如 <code>0x00FF</code> 输出为 <code>FF</code>）。<code>0x</code> 前缀需调用者自行输出。</p>
+    </section>
+
+    <section id="api-put_bin">
+    <h3>put_bin</h3>
+    <p>原型：<code>void put_bin(unsigned int n)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 21 | <strong>分类</strong>: 控制台输出</div>
+    <h4>描述</h4>
+    <p>输出二进制表示（不含前导零）。</p>
+    <h4>参数</h4>
+    <ul><li><code>n</code> (unsigned int): 要输出的值</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void put_bin(unsigned int n);
+
+put_bin(0);          /* 输出: 0 */
+put_bin(1);          /* 输出: 1 */
+put_bin(10);         /* 输出: 1010 */
+put_bin(255);        /* 输出: 11111111 */
+put_bin(0xB4);       /* 输出: 10110100 */</code></pre></div>
+    <h4>备注</h4>
+    <p><code>0</code> 输出 <code>"0"</code>，其他值不含前导零。适合底层寄存器/位域调试。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-keyboard">键盘输入</h2>
+    <p>本组函数用于读取键盘输入与修饰键状态。<code>getc</code> 非阻塞且只返回 ASCII；<code>getch</code> 阻塞且返回 16 位键值（含扩展键）；<code>kbhit</code> 检测是否有按键；<code>get_key_flags</code> 获取修饰键状态。</p>
+
+    <section id="api-getc">
+    <h3>getc</h3>
+    <p>原型：<code>int getc(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 4 | <strong>分类</strong>: 键盘输入</div>
+    <h4>描述</h4>
+    <p>非阻塞读取键盘。若键盘缓冲区有按键则返回其 ASCII 码，否则立即返回 -1。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>按键的 ASCII 码（0~127），或 -1（无按键）。<strong>只返回低 8 位</strong>，无法获取扩展键码。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int getc(void);
+extern void putc(int ch);
+extern void exit(int code);
+
+while (1) {
+    int ch = getc();
+    if (ch &gt;= 0) {
+        if (ch == 27) exit(0);
+        putc(ch);
+    }
+}</code></pre></div>
+    <h4>备注</h4>
+    <p><code>getc</code> 只返回低 8 位（<code>key &amp; 0xFF</code>），扩展键（方向键、F1~F12 等）会被截断。需要处理扩展键请使用 <code>getch</code>。</p>
+    </section>
+
+    <section id="api-getch">
+    <h3>getch</h3>
+    <p>原型：<code>int getch(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 23 | <strong>分类</strong>: 键盘输入</div>
+    <h4>描述</h4>
+    <p>阻塞读取一个按键，直到有按键输入才返回。返回 <strong>16 位键值</strong>，可区分普通字符与扩展键。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>16 位键值：
+        <ul>
+            <li>普通可见字符（0x20~0x7E）：返回 ASCII 码本身（如 <code>'A'</code>=0x41）</li>
+            <li>扩展键（Enter/ESC/Tab/Backspace/F1~F12/方向键等）：返回 <code>0x100 + code</code></li>
+            <li>修饰键（Shift/Ctrl/Alt 等）：在内部自动跳过，不会返回</li>
+        </ul>
+    </p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int getch(void);
+extern void exit(int code);
+
+int key = getch();
+if (key &amp; 0x100) {
+    switch (key) {
+    case 0x101: exit(0);          /* ESC */
+    case 0x103: break;            /* Enter */
+    case 0x104: break;            /* Backspace */
+    case 0x125: break;            /* Up */
+    case 0x126: break;            /* Down */
+    case 0x127: break;            /* Left */
+    case 0x128: break;            /* Right */
+    }
+} else {
+    if (key == 'q') exit(0);
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>用 <code>(key &amp; 0x100)</code> 判断是否为扩展键。<strong>不要</strong>用 <code>&amp; 0xFF</code> 截断，否则方向键等功能键无法识别。常见扩展键值：ESC=0x101，Tab=0x102，Enter=0x103，Backspace=0x104，F1~F12=0x111~0x11C，方向键=0x125~0x128。</p>
+    </section>
+
+    <section id="api-kbhit">
+    <h3>kbhit</h3>
+    <p>原型：<code>int kbhit(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 24 | <strong>分类</strong>: 键盘输入</div>
+    <h4>描述</h4>
+    <p>检测键盘缓冲区是否有按键。<strong>不消费</strong>按键数据，需配合 <code>getch</code> / <code>getc</code> 读取。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>1 = 有按键待读取，0 = 无按键。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int kbhit(void);
+extern int getch(void);
+
+while (1) {
+    if (kbhit()) {
+        int key = getch();
+        if (key == 'q') break;
+    }
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>典型用法是游戏循环：先 <code>kbhit</code> 检测，有键再 <code>getch</code> 读取，避免阻塞主循环。</p>
+    </section>
+
+    <section id="api-get_key_flags">
+    <h3>get_key_flags</h3>
+    <p>原型：<code>int get_key_flags(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 34 | <strong>分类</strong>: 键盘输入</div>
+    <h4>描述</h4>
+    <p>获取当前所有修饰键的状态位掩码，可同时检测多个修饰键。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>16 位状态掩码，各位含义：</p>
+    <div class="table-wrap"><table><thead><tr><th>位</th><th>掩码</th><th>含义</th></tr></thead><tbody>
+    <tr><td>0</td><td>0x001</td><td>左 Shift</td></tr><tr><td>1</td><td>0x002</td><td>右 Shift</td></tr>
+    <tr><td>2</td><td>0x004</td><td>左 Ctrl</td></tr><tr><td>3</td><td>0x008</td><td>右 Ctrl</td></tr>
+    <tr><td>4</td><td>0x010</td><td>左 Alt</td></tr><tr><td>5</td><td>0x020</td><td>右 Alt</td></tr>
+    <tr><td>6</td><td>0x040</td><td>Caps Lock（开关状态）</td></tr>
+    <tr><td>7</td><td>0x080</td><td>Num Lock（开关状态）</td></tr>
+    <tr><td>8</td><td>0x100</td><td>Scroll Lock（开关状态）</td></tr>
+    </tbody></table></div>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int get_key_flags(void);
+extern int getch(void);
+
+int key = getch();
+int flags = get_key_flags();
+
+if (flags &amp; 0x001) { }
+if (flags &amp; 0x002) { }
+if (flags &amp; 0x004) { }
+if (flags &amp; 0x010) { }
+if (flags &amp; 0x040) { }
+
+if ((flags &amp; 0x004) &amp;&amp; key == 'c') {
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>Shift/Ctrl/Alt 位反映按键的实时按下状态；Lock 位反映开关的当前状态（按下后切换）。可同时有多个位被置位。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-screen">屏幕控制</h2>
+    <p>本组函数用于控制屏幕显示：清屏、光标定位、获取屏幕尺寸与视频模式、滚屏。</p>
+
+    <section id="api-clrscr">
+    <h3>clrscr</h3>
+    <p>原型：<code>void clrscr(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 6 | <strong>分类</strong>: 屏幕控制</div>
+    <h4>描述</h4>
+    <p>清空整个屏幕，并将光标复位到左上角 (0, 0)。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void clrscr(void);
+extern void puts(char* str);
+extern void gotoxy(int x, int y);
+
+clrscr();
+gotoxy(0, 0);
+puts("屏幕已清空, 光标回到左上角");</code></pre></div>
+    <h4>备注</h4>
+    <p>清屏后当前 <code>set_color</code> 颜色设置不变。文本模式下用空格填充；图形模式下清空帧缓冲。</p>
+    </section>
+
+    <section id="api-gotoxy">
+    <h3>gotoxy</h3>
+    <p>原型：<code>void gotoxy(int x, int y)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 7 | <strong>分类</strong>: 屏幕控制</div>
+    <h4>描述</h4>
+    <p>移动光标到指定字符坐标 (x, y)。</p>
+    <h4>参数</h4>
+    <ul><li><code>x</code> (int): 列号（0 ~ <code>get_cols()-1</code>）</li><li><code>y</code> (int): 行号（0 ~ <code>get_rows()-1</code>）</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void gotoxy(int x, int y);
+extern void puts(char* str);
+
+gotoxy(0, 0);          /* 左上角 */
+puts("标题行");
+
+gotoxy(0, 12);         /* 屏幕中部 */
+puts("中间位置");
+
+gotoxy(30, 24);       /* 底部右侧 */
+puts("底部");</code></pre></div>
+    <h4>备注</h4>
+    <p>坐标超出屏幕范围会被裁剪到边界。常与 <code>set_color</code> 配合实现 UI 布局。</p>
+    </section>
+
+    <section id="api-get_xy">
+    <h3>get_xy</h3>
+    <p>原型：<code>int get_xy(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 8 | <strong>分类</strong>: 屏幕控制</div>
+    <h4>描述</h4>
+    <p>获取当前光标的字符坐标。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>打包后的 32 位整数：<code>(x &amp; 0xFFFF) | (y &lt;&lt; 16)</code>。x 在低 16 位，y 在高 16 位。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int get_xy(void);
+extern void put_int(int n);
+
+int pos = get_xy();
+int x = pos &amp; 0xFFFF;
+int y = pos &gt;&gt; 16;
+put_int(x);
+put_int(y);
+
+int saved = get_xy();
+gotoxy(saved &amp; 0xFFFF, saved &gt;&gt; 16);</code></pre></div>
+    <h4>备注</h4>
+    <p>用位运算解析坐标：<code>x = ret &amp; 0xFFFF</code>，<code>y = ret &gt;&gt; 16</code>。</p>
+    </section>
+
+    <section id="api-get_cols">
+    <h3>get_cols</h3>
+    <p>原型：<code>int get_cols(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 9 | <strong>分类</strong>: 屏幕控制</div>
+    <h4>描述</h4>
+    <p>获取屏幕的字符列数（宽度）。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>列数。文本模式 = 80，图形模式（VGA Mode 13h）= 40。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int get_cols(void);
+extern void put_int(int n);
+extern void gotoxy(int x, int y);
+
+int cols = get_cols();
+put_int(cols);
+
+static char title[] = "=== CatOS ===";
+int len = 13;
+gotoxy((cols - len) / 2, 0);
+puts(title);</code></pre></div>
+    <h4>备注</h4>
+    <p>图形模式下由于字体为 8x8 像素，320 像素宽对应 40 列。文本模式标准为 80 列。</p>
+    </section>
+
+    <section id="api-get_rows">
+    <h3>get_rows</h3>
+    <p>原型：<code>int get_rows(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 10 | <strong>分类</strong>: 屏幕控制</div>
+    <h4>描述</h4>
+    <p>获取屏幕的字符行数（高度）。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>行数。通常 = 25。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int get_rows(void);
+extern void put_int(int n);
+extern void gotoxy(int x, int y);
+
+int rows = get_rows();
+put_int(rows);
+
+gotoxy(0, rows - 1);
+puts("底部行");</code></pre></div>
+    <h4>备注</h4>
+    <p>标准文本模式 25 行，图形模式（VGA 13h, 200 像素高 / 8 像素字体）也是 25 行。</p>
+    </section>
+
+    <section id="api-get_vmode">
+    <h3>get_vmode</h3>
+    <p>原型：<code>int get_vmode(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 11 | <strong>分类</strong>: 屏幕控制</div>
+    <h4>描述</h4>
+    <p>获取当前视频模式。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>0 = 文本模式，1 = 图形模式（VGA Mode 13h, 320x200, 256 色）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int get_vmode(void);
+extern void puts(char* str);
+
+if (get_vmode() == 0) {
+    puts("当前: 文本模式 (80x25)\n");
+} else {
+    puts("当前: 图形模式 (320x200, 256色)\n");
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>系统调用输出会自动适配两种模式，无需在程序中特殊处理。图形模式下 <code>putc</code> 对 ASCII &lt;32 或 &gt;127 输出 <code>'?'</code>。</p>
+    </section>
+
+    <section id="api-scroll">
+    <h3>scroll</h3>
+    <p>原型：<code>void scroll(int lines)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 25 | <strong>分类</strong>: 屏幕控制</div>
+    <h4>描述</h4>
+    <p>将屏幕内容向上滚动指定行数，底部出现空行。</p>
+    <h4>参数</h4>
+    <ul><li><code>lines</code> (int): 要滚动的行数</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void scroll(int lines);
+extern void gotoxy(int x, int y);
+extern void puts(char* str);
+
+scroll(1);
+scroll(5);
+
+gotoxy(0, 24);
+puts("新的一行");
+scroll(1);</code></pre></div>
+    <h4>备注</h4>
+    <p>滚动后底部空行使用当前 <code>set_color</code> 的背景色填充。光标位置不随滚动改变。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-file">文件 IO</h2>
+    <p>本组函数提供 FAT12/16/32 文件系统访问。文件名为 8.3 短文件名格式，仅支持根目录下的文件操作。</p>
+
+    <section id="api-set_io_size">
+    <h3>set_io_size</h3>
+    <p>原型：<code>void set_io_size(int size)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 26 | <strong>分类</strong>: 文件 IO</div>
+    <h4>描述</h4>
+    <p>设置后续 <code>file_read</code> / <code>file_write</code> / <code>file_list</code> / <code>file_append</code> / <code>int_to_str</code> 的第三参数。</p>
+    <h4>参数</h4>
+    <ul><li><code>size</code> (int): 字节数（第三参数值）</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void set_io_size(int size);
+extern int file_read(char* name, char* buf, int bufsize);
+
+set_io_size(4096);
+file_read("data.txt", buf, 0);
+
+file_read("data.txt", buf, 4096);</code></pre></div>
+    <h4>备注</h4>
+    <p>系统调用接口只有两个参数寄存器（<code>ebx</code>/<code>ecx</code>），三参数函数由 crt0 自动先调用 <code>set_io_size</code> 传递第三参数。C 代码中<strong>无需</strong>手动调用此函数，直接调用 <code>file_read</code> 等即可。</p>
+    </section>
+
+    <section id="api-file_read">
+    <h3>file_read</h3>
+    <p>原型：<code>int file_read(char* name, char* buf, int bufsize)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 27 | <strong>分类</strong>: 文件 IO</div>
+    <h4>描述</h4>
+    <p>读取文件内容到缓冲区。从文件开头读取，最多 <code>bufsize</code> 字节。</p>
+    <h4>参数</h4>
+    <ul><li><code>name</code> (char*): 8.3 短文件名（如 <code>"hello.ce"</code>、<code>"data.txt"</code>）</li><li><code>buf</code> (char*): 接收数据的缓冲区</li><li><code>bufsize</code> (int): 最大读取字节数</li></ul>
+    <h4>返回值</h4>
+    <p>实际读取的字节数；文件不存在或失败返回 -1。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int file_read(char* name, char* buf, int bufsize);
+extern void puts(char* str);
+extern void put_int(int n);
+
+static char buf[4096];
+int n = file_read("test.txt", buf, sizeof(buf));
+if (n &lt; 0) {
+    puts("文件不存在\n");
+} else {
+    buf[n] = '\0';
+    puts("读取 "); put_int(n); puts(" 字节:\n");
+    puts(buf);
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>文件名不区分大小写，内核内部转大写匹配。<code>bufsize</code> 决定最大读取量，缓冲区必须在用户段内（受 128KB 段大小限制）。</p>
+    </section>
+
+    <section id="api-file_write">
+    <h3>file_write</h3>
+    <p>原型：<code>int file_write(char* name, char* buf, int size)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 28 | <strong>分类</strong>: 文件 IO</div>
+    <h4>描述</h4>
+    <p>写入文件。文件不存在时创建；已存在时<strong>覆盖</strong>原有内容。</p>
+    <h4>参数</h4>
+    <ul><li><code>name</code> (char*): 8.3 文件名</li><li><code>buf</code> (char*): 要写入的数据缓冲区</li><li><code>size</code> (int): 要写入的字节数</li></ul>
+    <h4>返回值</h4>
+    <p>实际写入的字节数；失败返回 -1。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int file_write(char* name, char* buf, int size);
+extern void put_int(int n);
+
+static char content[] = "Hello from CatOS file IO!\nLine 2\n";
+int written = file_write("test.txt", content, 29);
+if (written &gt;= 0) {
+    put_int(written);
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>会覆盖原有内容。如需在文件末尾追加请使用 <code>file_append</code>。文件大小受 FAT 文件系统和磁盘空间限制。</p>
+    </section>
+
+    <section id="api-file_delete">
+    <h3>file_delete</h3>
+    <p>原型：<code>int file_delete(char* name)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 29 | <strong>分类</strong>: 文件 IO</div>
+    <h4>描述</h4>
+    <p>删除指定文件。</p>
+    <h4>参数</h4>
+    <ul><li><code>name</code> (char*): 要删除的文件名</li></ul>
+    <h4>返回值</h4>
+    <p>0 = 成功，-1 = 失败（文件不存在等）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int file_delete(char* name);
+extern void puts(char* str);
+
+if (file_delete("temp.txt") == 0) {
+    puts("删除成功\n");
+} else {
+    puts("删除失败 (文件不存在)\n");
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>删除后文件所占簇被释放。只读/系统文件也能被删除（内核不检查 FAT 属性）。</p>
+    </section>
+
+    <section id="api-file_exists">
+    <h3>file_exists</h3>
+    <p>原型：<code>int file_exists(char* name)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 30 | <strong>分类</strong>: 文件 IO</div>
+    <h4>描述</h4>
+    <p>检查文件是否存在。</p>
+    <h4>参数</h4>
+    <ul><li><code>name</code> (char*): 文件名</li></ul>
+    <h4>返回值</h4>
+    <p>1 = 存在，0 = 不存在。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int file_exists(char* name);
+extern void puts(char* str);
+
+if (file_exists("config.txt")) {
+    puts("配置文件存在\n");
+} else {
+    puts("配置文件不存在, 使用默认配置\n");
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>只检查根目录下的文件。比先 <code>file_read</code> 再判断返回值更高效。</p>
+    </section>
+
+    <section id="api-file_size">
+    <h3>file_size</h3>
+    <p>原型：<code>int file_size(char* name)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 31 | <strong>分类</strong>: 文件 IO</div>
+    <h4>描述</h4>
+    <p>获取文件大小（字节数）。</p>
+    <h4>参数</h4>
+    <ul><li><code>name</code> (char*): 文件名</li></ul>
+    <h4>返回值</h4>
+    <p>文件字节数；文件不存在返回 -1。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int file_size(char* name);
+extern void put_int(int n);
+
+int sz = file_size("data.bin");
+if (sz &gt;= 0) {
+    put_int(sz);
+} else {
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>可在 <code>file_read</code> 前调用以预先分配合适大小的缓冲区。返回的是文件实际字节数，非占用簇数。</p>
+    </section>
+
+    <section id="api-file_list">
+    <h3>file_list</h3>
+    <p>原型：<code>int file_list(char* buf, int bufsize)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 32 | <strong>分类</strong>: 文件 IO</div>
+    <h4>描述</h4>
+    <p>列出根目录下所有文件的名称。</p>
+    <h4>参数</h4>
+    <ul><li><code>buf</code> (char*): 输出缓冲区，文件名以 <code>\n</code> 分隔</li><li><code>bufsize</code> (int): 缓冲区大小</li></ul>
+    <h4>返回值</h4>
+    <p>文件数量。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int file_list(char* buf, int bufsize);
+extern void puts(char* str);
+extern void put_int(int n);
+
+static char list[2048];
+int count = file_list(list, sizeof(list));
+puts("Files ("); put_int(count); puts("):\n");
+puts(list);</code></pre></div>
+    <h4>备注</h4>
+    <p>文件名以 <code>\n</code> 分隔，可直接 <code>puts</code> 输出。若文件数过多导致超过 <code>bufsize</code>，超出部分被截断。</p>
+    </section>
+
+    <section id="api-file_append">
+    <h3>file_append</h3>
+    <p>原型：<code>int file_append(char* name, char* buf, int size)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 35 | <strong>分类</strong>: 文件 IO</div>
+    <h4>描述</h4>
+    <p>追加数据到文件末尾，<strong>不覆盖</strong>原有内容。文件不存在时自动创建。</p>
+    <h4>参数</h4>
+    <ul><li><code>name</code> (char*): 文件名</li><li><code>buf</code> (char*): 要追加的数据</li><li><code>size</code> (int): 字节数</li></ul>
+    <h4>返回值</h4>
+    <p>0 = 成功，-1 = 失败。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int file_append(char* name, char* buf, int size);
+
+static char line[] = "log entry\n";
+file_append("log.txt", line, 11);</code></pre></div>
+    <h4>备注</h4>
+    <p>适合日志写入等场景。与 <code>file_write</code>（覆盖）的区别：追加模式保留原内容。</p>
+    </section>
+
+    <section id="api-file_stat">
+    <h3>file_stat</h3>
+    <p>原型：<code>int file_stat(char* name, int* info)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 38 | <strong>分类</strong>: 文件 IO</div>
+    <h4>描述</h4>
+    <p>获取文件的详细信息（大小与 FAT 属性）。</p>
+    <h4>参数</h4>
+    <ul><li><code>name</code> (char*): 文件名</li><li><code>info</code> (int*): <code>int[2]</code> 数组，用于接收结果：
+            <ul><li><code>info[0]</code> = 文件大小（字节）</li><li><code>info[1]</code> = FAT 属性字节</li></ul>
+        </li></ul>
+    <h4>返回值</h4>
+    <p>0 = 成功，-1 = 失败（文件不存在）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int file_stat(char* name, int* info);
+extern void put_int(int n);
+
+int info[2];
+if (file_stat("test.txt", info) == 0) {
+    put_int(info[0]);
+    put_int(info[1]);
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>常见 FAT 属性值：<code>0x20</code>=普通归档文件，<code>0x01</code>=只读，<code>0x02</code>=隐藏，<code>0x04</code>=系统，<code>0x08</code>=卷标，<code>0x10</code>=目录。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-sysinfo">系统信息</h2>
+    <p>本组函数用于获取系统状态：时钟滴答、进程信息、随机数。</p>
+
+    <section id="api-get_ticks">
+    <h3>get_ticks</h3>
+    <p>原型：<code>int get_ticks(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 0 | <strong>分类</strong>: 系统信息</div>
+    <h4>描述</h4>
+    <p>获取系统启动以来的时钟滴答数。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>系统启动以来的滴答数（int）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int get_ticks(void);
+extern void msleep(int ms);
+extern void put_int(int n);
+
+int t1 = get_ticks();
+msleep(500);
+int t2 = get_ticks();
+put_int(t2 - t1);</code></pre></div>
+    <h4>备注</h4>
+    <p>时钟频率 100Hz，1 tick = 10ms。可用于测量代码耗时、做随机种子、实现定时器。</p>
+    </section>
+
+    <section id="api-get_pid">
+    <h3>get_pid</h3>
+    <p>原型：<code>int get_pid(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 14 | <strong>分类</strong>: 系统信息</div>
+    <h4>描述</h4>
+    <p>获取当前进程的 PID（进程 ID）。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>当前进程的 PID。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int get_pid(void);
+extern void put_int(int n);
+
+put_int(get_pid());</code></pre></div>
+    <h4>备注</h4>
+    <p>shell 的 PID 通常较小，用户程序从下一个 PID 开始。当前 MVP 阶段同一时刻只能运行一个用户程序。</p>
+    </section>
+
+    <section id="api-get_name">
+    <h3>get_name</h3>
+    <p>原型：<code>int get_name(char* buf)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 15 | <strong>分类</strong>: 系统信息</div>
+    <h4>描述</h4>
+    <p>获取当前进程的名称，复制到 <code>buf</code>。</p>
+    <h4>参数</h4>
+    <ul><li><code>buf</code> (char*): 输出缓冲区，建议至少 32 字节</li></ul>
+    <h4>返回值</h4>
+    <p>进程名字符串长度（不含 <code>\0</code>）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int get_name(char* buf);
+extern void puts(char* str);
+extern void put_int(int n);
+
+char name[32];
+int len = get_name(name);
+puts("进程名: "); puts(name);
+puts(" 长度: "); put_int(len);</code></pre></div>
+    <h4>备注</h4>
+    <p>进程名为 CE 头中的 <code>name</code> 字段（打包时由 <code>mkcate.py</code> 写入）。字符串以 <code>\0</code> 结尾。</p>
+    </section>
+
+    <section id="api-rand">
+    <h3>rand</h3>
+    <p>原型：<code>int rand(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 16 | <strong>分类</strong>: 系统信息</div>
+    <h4>描述</h4>
+    <p>生成一个伪随机数。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>[0, 32767] 范围内的伪随机整数。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int rand(void);
+extern void srand(int seed);
+extern int get_ticks(void);
+extern void put_int(int n);
+
+srand(get_ticks());
+int r = rand();
+put_int(r);
+
+int dice = rand() % 6 + 1;</code></pre></div>
+    <h4>备注</h4>
+    <p>使用 LCG（线性同余）算法。未调用 <code>srand</code> 时默认种子为 1，每次运行产生相同序列。建议用 <code>srand(get_ticks())</code> 做种以获得不同序列。</p>
+    </section>
+
+    <section id="api-srand">
+    <h3>srand</h3>
+    <p>原型：<code>void srand(int seed)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 17 | <strong>分类</strong>: 系统信息</div>
+    <h4>描述</h4>
+    <p>设置伪随机数生成器的种子。</p>
+    <h4>参数</h4>
+    <ul><li><code>seed</code> (int): 种子值</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void srand(int seed);
+extern int get_ticks(void);
+
+srand(get_ticks());
+srand(42);</code></pre></div>
+    <h4>备注</h4>
+    <p>相同种子产生相同的随机数序列。调试时可用固定种子以复现问题；正式运行建议用 <code>get_ticks()</code> 做种。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-sysctl">系统控制</h2>
+    <p>本组函数用于控制程序与系统：退出程序、延时、重启系统。</p>
+
+    <section id="api-exit">
+    <h3>exit</h3>
+    <p>原型：<code>void exit(int code)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 5 | <strong>分类</strong>: 系统控制</div>
+    <h4>描述</h4>
+    <p>终止当前程序，将控制权交回 shell。</p>
+    <h4>参数</h4>
+    <ul><li><code>code</code> (int): 退出码</li></ul>
+    <h4>返回值</h4>
+    <p>不返回（程序终止）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void exit(int code);
+
+exit(0);
+exit(1);
+exit(42);</code></pre></div>
+    <h4>备注</h4>
+    <p>shell 会显示 <code>Program exited (code N)</code>。<code>main</code> 函数返回后 crt0 会自动调用 <code>exit(返回值)</code>，但建议显式调用。异常崩溃时显示 <code>Program exited (code -N-1)</code>（N 为异常向量号）。</p>
+    </section>
+
+    <section id="api-msleep">
+    <h3>msleep</h3>
+    <p>原型：<code>void msleep(int ms)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 22 | <strong>分类</strong>: 系统控制</div>
+    <h4>描述</h4>
+    <p>毫秒级延时，阻塞当前程序指定毫秒数。</p>
+    <h4>参数</h4>
+    <ul><li><code>ms</code> (int): 延时毫秒数</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void msleep(int ms);
+extern void puts(char* str);
+
+puts("等待 500ms...\n");
+msleep(500);
+puts("完成\n");
+
+while (1) {
+    msleep(33);
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>基于 100Hz 系统时钟，精度为 10ms（即 <code>ms</code> 会被四舍五入到最近的 10ms 倍数）。采用忙等实现，延时期间占用 CPU。</p>
+    </section>
+
+    <section id="api-reboot">
+    <h3>reboot</h3>
+    <p>原型：<code>void reboot(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 33 | <strong>分类</strong>: 系统控制</div>
+    <h4>描述</h4>
+    <p>重启系统。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>不返回（系统重启）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void reboot(void);
+extern void puts(char* str);
+
+puts("系统将在 1 秒后重启...\n");
+msleep(1000);
+reboot();</code></pre></div>
+    <h4>备注</h4>
+    <p>通过 8042 键盘控制器发送复位命令重启 CPU。调用后系统立即重启，不会返回。请谨慎使用。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-proc">进程管理</h2>
+    <p>本组函数用于进程间控制：启动其他程序。</p>
+
+    <section id="api-spawn">
+    <h3>spawn</h3>
+    <p>原型：<code>int spawn(char* name)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 39 | <strong>分类</strong>: 进程管理</div>
+    <h4>描述</h4>
+    <p>启动另一个程序（非阻塞）。新程序在独立的进程槽位中运行，调用者立即返回继续执行。</p>
+    <h4>参数</h4>
+    <ul><li><code>name</code> (char*): 要启动的程序文件名（如 <code>"SHELL.BIN"</code>）</li></ul>
+    <h4>返回值</h4>
+    <p>成功返回新进程的槽位号（&gt;=0）；失败返回错误码（&lt;0），常见原因包括文件不存在、进程槽位已满。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int spawn(char* name);
+extern void puts(char* str);
+extern void put_int(int n);
+
+int slot = spawn("SHELL.BIN");
+if (slot &gt;= 0) {
+    puts("已启动，槽位: ");
+    put_int(slot);
+} else {
+    puts("启动失败\n");
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>非阻塞调用：新进程创建后立即返回，不等待其结束。CatOS 进程槽位有限，请合理使用。被启动程序需位于文件系统根目录。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-uconsole">用户控制台 API</h2>
+    <p>用户控制台 API 用于操作程序启动时自动分配的控制台窗口。仅在图形桌面模式（<code>get_vmode() != 0</code>）下有效。</p>
+
+    <section id="api-uc_putc">
+    <h3>uc_putc</h3>
+    <p>原型：<code>void uc_putc(int ch, int attr)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 40 | <strong>分类</strong>: 用户控制台</div>
+    <h4>描述</h4>
+    <p>向用户控制台窗口输出单个字符。<code>attr</code> 低 4 位为前景色，高 4 位为背景色，与文本模式颜色属性一致。</p>
+    <h4>参数</h4>
+    <ul><li><code>ch</code> (int): 要输出的字符 ASCII 码（仅低 8 位有效）</li><li><code>attr</code> (int): 颜色属性，低 4 位=前景色，高 4 位=背景色</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void uc_putc(int ch, int attr);
+
+/* 白字蓝底输出 'H' */
+uc_putc('H', 0x1F);
+/* 亮红字黑底输出 'i' */
+uc_putc('i', 0x0C);
+uc_putc('\n', 0x07);</code></pre></div>
+    <h4>备注</h4>
+    <p>仅在图形桌面模式下有效；文本模式下行为未定义。<code>attr</code> 编码与标准 VGA 文本属性一致。换行符 <code>'\n'</code> 会将光标移动到下一行行首。</p>
+    </section>
+
+    <section id="api-uc_clear">
+    <h3>uc_clear</h3>
+    <p>原型：<code>void uc_clear(void)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 41 | <strong>分类</strong>: 用户控制台</div>
+    <h4>描述</h4>
+    <p>清空用户控制台窗口，并将光标重置到左上角（0, 0）。</p>
+    <h4>参数</h4>
+    <p>无。</p>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void uc_clear(void);
+extern void uc_putc(int ch, int attr);
+
+uc_clear();          /* 清屏并重置光标 */
+uc_putc('A', 0x0F);  /* 在左上角输出 */</code></pre></div>
+    <h4>备注</h4>
+    <p>仅在图形桌面模式下有效。清屏后背景色为默认属性，光标回到窗口左上角。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-window">窗口 API</h2>
+    <p>窗口 API 允许用户程序创建自定义 GUI 窗口，进行像素级绘图和事件处理。每个进程最多创建 4 个窗口，客户区最大 200×140 像素。仅在图形桌面模式下可用。</p>
+    <p><strong>常用颜色常量</strong>（颜色参数采用 <code>0xRRGGBB</code> 24 位真彩色，下表为兼容文本模式的 16 色 VGA 索引值，可在窗口 API 中直接使用）：</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>常量</th><th>值</th><th>颜色</th><th>常量</th><th>值</th><th>颜色</th></tr></thead>
+            <tbody>
+                <tr><td>黑</td><td><code>0x00</code></td><td>BLACK</td><td>暗灰</td><td><code>0x08</code></td><td>DARK_GRAY</td></tr>
+                <tr><td>蓝</td><td><code>0x01</code></td><td>BLUE</td><td>亮蓝</td><td><code>0x09</code></td><td>BRIGHT_BLUE</td></tr>
+                <tr><td>绿</td><td><code>0x02</code></td><td>GREEN</td><td>亮绿</td><td><code>0x0A</code></td><td>BRIGHT_GREEN</td></tr>
+                <tr><td>青</td><td><code>0x03</code></td><td>CYAN</td><td>亮青</td><td><code>0x0B</code></td><td>BRIGHT_CYAN</td></tr>
+                <tr><td>红</td><td><code>0x04</code></td><td>RED</td><td>亮红</td><td><code>0x0C</code></td><td>BRIGHT_RED</td></tr>
+                <tr><td>品红</td><td><code>0x05</code></td><td>MAGENTA</td><td>亮品红</td><td><code>0x0D</code></td><td>BRIGHT_MAGENTA</td></tr>
+                <tr><td>棕</td><td><code>0x06</code></td><td>BROWN</td><td>黄</td><td><code>0x0E</code></td><td>YELLOW</td></tr>
+                <tr><td>浅灰</td><td><code>0x07</code></td><td>LIGHT_GRAY</td><td>白</td><td><code>0x0F</code></td><td>WHITE</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <section id="api-win_create">
+    <h3>win_create</h3>
+    <p>原型：<code>int win_create(int x, int y, int w, int h, char* title)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 42 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>创建一个新的 GUI 窗口。窗口创建后会显示在桌面上，并返回窗口 ID 供后续操作使用。</p>
+    <h4>参数</h4>
+    <ul><li><code>x</code> (int): 窗口左上角的屏幕 X 坐标</li><li><code>y</code> (int): 窗口左上角的屏幕 Y 坐标</li><li><code>w</code> (int): 客户区宽度（像素，最大 200）</li><li><code>h</code> (int): 客户区高度（像素，最大 140）</li><li><code>title</code> (char*): 窗口标题字符串</li></ul>
+    <h4>返回值</h4>
+    <p>成功返回窗口 ID（&gt;=0）；失败返回 -1（已达每进程 4 个窗口上限，或尺寸超限）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int win_create(int x, int y, int w, int h, char* title);
+
+int win = win_create(100, 50, 200, 140, "My Window");
+if (win &lt; 0) {
+    /* 创建失败 */</code></pre></div>
+    <h4>备注</h4>
+    <p>每个进程最多创建 4 个窗口。客户区尺寸不能超过 200×140 像素。<code>x</code>/<code>y</code> 为窗口在屏幕上的位置（含标题栏）。仅在图形桌面模式下可用。</p>
+    </section>
+
+    <section id="api-win_close">
+    <h3>win_close</h3>
+    <p>原型：<code>void win_close(int win_id)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 43 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>关闭指定窗口，释放其占用的资源。关闭后该 <code>win_id</code> 不再有效。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 由 <code>win_create</code> 返回的窗口 ID</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int win_create(int x, int y, int w, int h, char* title);
+extern void win_close(int win_id);
+
+int win = win_create(100, 50, 200, 140, "Temp");
+/* ... 使用窗口 ... */
+win_close(win);</code></pre></div>
+    <h4>备注</h4>
+    <p>关闭无效的 <code>win_id</code> 行为未定义。程序退出时未关闭的窗口会被系统自动回收。</p>
+    </section>
+
+    <section id="api-win_draw_text">
+    <h3>win_draw_text</h3>
+    <p>原型：<code>void win_draw_text(int win_id, int x, int y, char* str, int fg, int bg)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 44 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>在窗口客户区指定位置绘制文本，使用 8×16 像素字体。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li><li><code>x</code> (int): 客户区内的起始 X 坐标（像素）</li><li><code>y</code> (int): 客户区内的起始 Y 坐标（像素）</li><li><code>str</code> (char*): 要绘制的字符串</li><li><code>fg</code> (int): 前景色</li><li><code>bg</code> (int): 背景色</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void win_draw_text(int win_id, int x, int y, char* str, int fg, int bg);
+
+win_draw_text(win, 10, 10, "Hello, Window!", 0x0F, 0x00);
+win_draw_text(win, 10, 30, "CatOS", 0x0E, 0x01);</code></pre></div>
+    <h4>备注</h4>
+    <p>字体为 8×16 像素点阵，每个字符占 8 像素宽。绘制位置超出客户区边界时会被裁剪。</p>
+    </section>
+
+    <section id="api-win_draw_rect">
+    <h3>win_draw_rect</h3>
+    <p>原型：<code>void win_draw_rect(int win_id, int x, int y, int w, int h, int color)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 45 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>在窗口客户区绘制实心矩形。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li><li><code>x</code> (int): 矩形左上角 X 坐标</li><li><code>y</code> (int): 矩形左上角 Y 坐标</li><li><code>w</code> (int): 矩形宽度</li><li><code>h</code> (int): 矩形高度</li><li><code>color</code> (int): 填充颜色</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void win_draw_rect(int win_id, int x, int y, int w, int h, int color);
+
+win_draw_rect(win, 0, 0, 200, 140, 0x01);    /* 蓝色背景 */
+win_draw_rect(win, 10, 10, 50, 30, 0x0E);    /* 黄色矩形 */</code></pre></div>
+    <h4>备注</h4>
+    <p>超出客户区边界的部分会被裁剪。常用于填充背景或绘制色块。</p>
+    </section>
+
+    <section id="api-win_get_event">
+    <h3>win_get_event</h3>
+    <p>原型：<code>int win_get_event(int win_id, int* type, int* x, int* y)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 46 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>阻塞获取指定窗口的事件。若无事件，调用线程会被挂起直到有事件到来。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li><li><code>type</code> (int*): 输出事件类型</li><li><code>x</code> (int*): 输出事件的 X 坐标（鼠标事件为客户区相对坐标，键盘事件为按键值）</li><li><code>y</code> (int*): 输出事件的 Y 坐标</li></ul>
+    <h4>返回值</h4>
+    <p>成功返回事件类型（见下表）；无事件时阻塞，不会返回 0。</p>
+    <h4>事件类型</h4>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>常量</th><th>值</th><th>说明</th><th>x 字段</th><th>y 字段</th></tr></thead>
+            <tbody>
+                <tr><td><code>EV_NONE</code></td><td>0</td><td>无事件</td><td>-</td><td>-</td></tr>
+                <tr><td><code>EV_LDOWN</code></td><td>1</td><td>左键按下</td><td>鼠标 x</td><td>鼠标 y</td></tr>
+                <tr><td><code>EV_LUP</code></td><td>2</td><td>左键释放</td><td>鼠标 x</td><td>鼠标 y</td></tr>
+                <tr><td><code>EV_MOUSE</code></td><td>3</td><td>鼠标移动</td><td>鼠标 x</td><td>鼠标 y</td></tr>
+                <tr><td><code>EV_KEY</code></td><td>4</td><td>键盘按键</td><td>按键值</td><td>0</td></tr>
+                <tr><td><code>EV_CLOSE</code></td><td>5</td><td>关闭请求</td><td>-</td><td>-</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int win_get_event(int win_id, int* type, int* x, int* y);
+extern void win_draw_rect(int win_id, int x, int y, int w, int h, int color);
+
+int type, x, y;
+while (1) {
+    win_get_event(win, &amp;type, &amp;x, &amp;y);
+    if (type == 1) {            /* EV_LDOWN */
+        win_draw_rect(win, x, y, 5, 5, 0x0C);  /* 画红点 */
+    } else if (type == 5) {     /* EV_CLOSE */
+        break;
+    }
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>阻塞调用：无事件时当前进程会被挂起，不占用 CPU。鼠标坐标为相对于窗口客户区的坐标。<code>EV_CLOSE</code> 通常由用户点击窗口关闭按钮触发，程序应在收到后调用 <code>win_close</code> 或 <code>exit</code>。</p>
+    </section>
+
+    <section id="api-win_clear">
+    <h3>win_clear</h3>
+    <p>原型：<code>void win_clear(int win_id, int color)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 47 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>用指定颜色清空窗口整个客户区画布。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li><li><code>color</code> (int): 填充颜色</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void win_clear(int win_id, int color);
+
+win_clear(win, 0x00);   /* 清成黑色 */
+win_clear(win, 0x07);   /* 清成浅灰 */</code></pre></div>
+    <h4>备注</h4>
+    <p>等效于用指定颜色绘制覆盖整个客户区的实心矩形。常用于动画/重绘前的清屏。</p>
+    </section>
+
+    <section id="api-win_set_title">
+    <h3>win_set_title</h3>
+    <p>原型：<code>void win_set_title(int win_id, char* title)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 48 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>修改已创建窗口的标题栏文本。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li><li><code>title</code> (char*): 新标题字符串</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void win_set_title(int win_id, char* title);
+
+win_set_title(win, "Loading...");
+/* ... 完成加载 ... */
+win_set_title(win, "Ready");</code></pre></div>
+    <h4>备注</h4>
+    <p>标题栏会立即刷新显示。标题字符串不需要长期保持有效（内核会复制内容）。</p>
+    </section>
+
+    <section id="api-win_draw_line">
+    <h3>win_draw_line</h3>
+    <p>原型：<code>void win_draw_line(int win_id, int x1, int y1, int x2, int y2, int color)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 49 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>在窗口客户区绘制直线，采用 Bresenham 算法。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li><li><code>x1</code> (int): 起点 X 坐标</li><li><code>y1</code> (int): 起点 Y 坐标</li><li><code>x2</code> (int): 终点 X 坐标</li><li><code>y2</code> (int): 终点 Y 坐标</li><li><code>color</code> (int): 线条颜色</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void win_draw_line(int win_id, int x1, int y1, int x2, int y2, int color);
+
+win_draw_line(win, 0, 0, 199, 139, 0x0A);    /* 对角线 */
+win_draw_line(win, 0, 70, 199, 70, 0x0E);    /* 水平线 */</code></pre></div>
+    <h4>备注</h4>
+    <p>支持任意方向直线（水平、垂直、斜线）。超出客户区的部分会被裁剪。</p>
+    </section>
+
+    <section id="api-win_set_pixel">
+    <h3>win_set_pixel</h3>
+    <p>原型：<code>void win_set_pixel(int win_id, int x, int y, int color)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 50 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>设置窗口客户区内单个像素的颜色。这是最底层的绘图操作。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li><li><code>x</code> (int): 像素 X 坐标</li><li><code>y</code> (int): 像素 Y 坐标</li><li><code>color</code> (int): 像素颜色</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void win_set_pixel(int win_id, int x, int y, int color);
+
+/* 在 (50,50) 画一个白点 */
+win_set_pixel(win, 50, 50, 0x0F);
+
+/* 画一条手工水平线 */
+for (int i = 0; i &lt; 100; i++) {
+    win_set_pixel(win, i, 20, 0x0C);
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>坐标超出客户区边界时该像素被忽略（不报错）。频繁单像素绘制性能较低，批量绘制建议使用 <code>win_draw_rect</code> 或 <code>win_draw_line</code>。</p>
+    </section>
+
+    <section id="api-win_peek_event">
+    <h3>win_peek_event</h3>
+    <p>原型：<code>int win_peek_event(int win_id, int* type, int* x, int* y)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 51 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>非阻塞获取指定窗口的事件。无论是否有事件都立即返回。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li><li><code>type</code> (int*): 输出事件类型</li><li><code>x</code> (int*): 输出事件的 X 坐标</li><li><code>y</code> (int*): 输出事件的 Y 坐标</li></ul>
+    <h4>返回值</h4>
+    <p>有事件返回事件类型（&gt;0）；无事件返回 <code>EV_NONE</code>（0）。事件类型同 <code>win_get_event</code>。</p>
+    <h4>事件类型</h4>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>常量</th><th>值</th><th>说明</th><th>x 字段</th><th>y 字段</th></tr></thead>
+            <tbody>
+                <tr><td><code>EV_NONE</code></td><td>0</td><td>无事件</td><td>-</td><td>-</td></tr>
+                <tr><td><code>EV_LDOWN</code></td><td>1</td><td>左键按下</td><td>鼠标 x</td><td>鼠标 y</td></tr>
+                <tr><td><code>EV_LUP</code></td><td>2</td><td>左键释放</td><td>鼠标 x</td><td>鼠标 y</td></tr>
+                <tr><td><code>EV_MOUSE</code></td><td>3</td><td>鼠标移动</td><td>鼠标 x</td><td>鼠标 y</td></tr>
+                <tr><td><code>EV_KEY</code></td><td>4</td><td>键盘按键</td><td>按键值</td><td>0</td></tr>
+                <tr><td><code>EV_CLOSE</code></td><td>5</td><td>关闭请求</td><td>-</td><td>-</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int win_peek_event(int win_id, int* type, int* x, int* y);
+extern void msleep(int ms);
+
+int type, x, y;
+while (1) {
+    int ev = win_peek_event(win, &amp;type, &amp;x, &amp;y);
+    if (ev == 5) {            /* EV_CLOSE */
+        break;
+    }
+    /* 做其他工作（如动画刷新） */
+    msleep(33);               /* ~30 FPS */
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>非阻塞：无事件时立即返回 0，适合游戏循环/动画场景，与定时刷新配合使用。事件类型含义与 <code>win_get_event</code> 相同。</p>
+    </section>
+
+    <section id="api-win_get_size">
+    <h3>win_get_size</h3>
+    <p>原型：<code>int win_get_size(int win_id, int* w, int* h)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 52 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>获取指定窗口的客户区尺寸（像素）。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li><li><code>w</code> (int*): 输出客户区宽度</li><li><code>h</code> (int*): 输出客户区高度</li></ul>
+    <h4>返回值</h4>
+    <p>0 = 成功；&lt;0 = 失败（无效 <code>win_id</code>）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int win_get_size(int win_id, int* w, int* h);
+extern void put_int(int n);
+
+int w, h;
+if (win_get_size(win, &amp;w, &amp;h) == 0) {
+    put_int(w);   /* 例如: 200 */
+    put_int(h);   /* 例如: 140 */
+}</code></pre></div>
+    <h4>备注</h4>
+    <p>返回的是创建时指定的客户区尺寸，不含标题栏与边框。可用于编写与窗口尺寸无关的通用绘图代码。</p>
+    </section>
+
+    <section id="api-win_set_closable">
+    <h3>win_set_closable</h3>
+    <p>原型：<code>void win_set_closable(int win_id, int closable)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 53 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>设置用户窗口是否允许通过点击标题栏叉号（×）关闭。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID（<code>win_create</code> 返回值）</li><li><code>closable</code> (int): 0=禁止叉号关闭，1=允许叉号关闭（默认值）</li></ul>
+    <h4>返回值</h4>
+    <p>无（void 函数）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int win_create(int x, int y, int w, int h, char* title);
+extern void win_set_closable(int win_id, int closable);
+extern int win_get_event(int win_id, int* type, int* x, int* y);
+
+int win = win_create(100, 50, 200, 140, "Form");
+
+/* 表单未提交时禁止用户通过叉号关闭 */
+win_set_closable(win, 0);
+
+/* ... 完成表单提交后允许关闭 ... */
+win_set_closable(win, 1);</code></pre></div>
+    <h4>备注</h4>
+    <p>默认情况下，所有窗口都允许通过叉号关闭（点击叉号会推送 <code>EV_CLOSE</code> 事件给应用）。设置 <code>closable=0</code> 后，点击叉号不会产生任何效果，窗口无法通过叉号关闭。应用仍可通过 <code>win_close()</code> 主动关闭窗口。典型用途：强制用户完成操作后才能关闭窗口（如表单未提交时禁止关闭）。</p>
+    </section>
+
+    <section id="api-win_get_closable">
+    <h3>win_get_closable</h3>
+    <p>原型：<code>int win_get_closable(int win_id)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 54 | <strong>分类</strong>: 窗口 API</div>
+    <h4>描述</h4>
+    <p>查询用户窗口是否允许通过点击叉号关闭。</p>
+    <h4>参数</h4>
+    <ul><li><code>win_id</code> (int): 窗口 ID</li></ul>
+    <h4>返回值</h4>
+    <p>1 = 允许叉号关闭，0 = 禁止叉号关闭（或窗口不存在）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int win_get_closable(int win_id);
+extern void win_set_closable(int win_id, int closable);
+extern void put_int(int n);
+
+/* 查询并切换窗口的叉号关闭状态 */
+int cur = win_get_closable(win);
+put_int(cur);
+win_set_closable(win, !cur);</code></pre></div>
+    <h4>备注</h4>
+    <p>查询的是 <code>win_set_closable</code> 设定的状态，默认值为 1（允许关闭）。传入无效 <code>win_id</code> 返回 0，调用方无法区分“禁止关闭”与“窗口不存在”，应先通过其他方式确认窗口有效性。</p>
+    </section>
+
+    <h3 id="win-close-behavior">窗口关闭与进程退出行为</h3>
+    <p>不同类型的窗口在叉号关闭行为与进程退出时遵循以下规则：</p>
+    <ul>
+        <li><strong>应用主窗口（用户控制台窗口）</strong>：点击叉号会直接终止进程，并自动关闭该进程创建的所有子窗口。</li>
+        <li><strong>子窗口（<code>win_create</code> 创建的）</strong>：点击叉号默认推送 <code>EV_CLOSE</code> 事件给应用，应用可在事件循环中处理。如需禁用此行为，可调用 <code>win_set_closable(win_id, 0)</code>，设置后点击叉号不会产生任何事件。</li>
+        <li><strong>应用主动调用 <code>exit(code)</code> 退出</strong>：会自动关闭该进程创建的所有子窗口并终止进程，退出码记录在进程的 <code>exit_code</code> 中。</li>
+    </ul>
+
+    <hr>
+
+    <h2 id="cat-conv">类型转换</h2>
+    <p>本组函数用于整数与字符串之间的相互转换。比 <code>put_int</code> 等更灵活，可写入缓冲区供文件 IO 或字符串拼接使用。</p>
+
+    <section id="api-int_to_str">
+    <h3>int_to_str</h3>
+    <p>原型：<code>int int_to_str(int value, char* buf, int radix)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 36 | <strong>分类</strong>: 类型转换</div>
+    <h4>描述</h4>
+    <p>将整数转换为指定进制的字符串表示。</p>
+    <h4>参数</h4>
+    <ul><li><code>value</code> (int): 要转换的整数</li><li><code>buf</code> (char*): 输出缓冲区，<strong>至少 33 字节</strong>（二进制 32 位 + <code>\0</code>）</li><li><code>radix</code> (int): 进制（2~36），0 默认按 10 进制</li></ul>
+    <h4>返回值</h4>
+    <p>写入的字符数（不含 <code>\0</code>）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int int_to_str(int value, char* buf, int radix);
+extern void puts(char* str);
+
+char buf[33];
+
+int_to_str(42, buf, 10);
+int_to_str(-123, buf, 10);
+int_to_str(255, buf, 16);
+int_to_str(10, buf, 2);
+int_to_str(511, buf, 8);
+puts(buf);</code></pre></div>
+    <h4>备注</h4>
+    <p><code>radix=10</code> 时支持负数（前缀 <code>-</code>）；其他进制按无符号处理。<code>0</code> 输出 <code>"0"</code>。十六进制使用小写 <code>a-f</code>。比 <code>put_int</code> 更灵活——结果写入缓冲区，可用于写文件、字符串拼接。</p>
+    </section>
+
+    <section id="api-atoi">
+    <h3>atoi</h3>
+    <p>原型：<code>int atoi(char* str)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 37 | <strong>分类</strong>: 类型转换</div>
+    <h4>描述</h4>
+    <p>将字符串转换为整数（十进制解析）。</p>
+    <h4>参数</h4>
+    <ul><li><code>str</code> (char*): 要解析的字符串</li></ul>
+    <h4>返回值</h4>
+    <p>解析得到的整数。无有效数字时返回 0。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int atoi(char* str);
+extern void put_int(int n);
+
+int a = atoi("42");
+int b = atoi("  -7");
+int c = atoi("+100");
+int d = atoi("123abc");
+int e = atoi("0x1F");
+int f = atoi("abc");
+put_int(a + b);</code></pre></div>
+    <h4>备注</h4>
+    <p>跳过前导空白字符，处理可选的 <code>+</code>/<code>-</code> 符号，解析到第一个非数字字符停止。无有效数字返回 0。有溢出保护，溢出时饱和到 <code>INT_MAX</code> / <code>INT_MIN</code>。仅支持十进制。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-string">字符串工具</h2>
+    <p>以下函数由 <code>crt0.asm</code> 提供，<strong>纯用户态实现，不经过系统调用</strong>。用于字符串与内存的基本操作。</p>
+
+    <section id="api-strlen">
+    <h3>strlen</h3>
+    <p>原型：<code>int strlen(char* str)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 无（crt0 内置） | <strong>分类</strong>: 字符串工具</div>
+    <h4>描述</h4>
+    <p>计算字符串长度（不含结尾 <code>\0</code>）。</p>
+    <h4>参数</h4>
+    <ul><li><code>str</code> (char*): 字符串指针</li></ul>
+    <h4>返回值</h4>
+    <p>字符串长度（不含 <code>\0</code>）。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int strlen(char* str);
+extern void put_int(int n);
+
+int len = strlen("Hello");
+put_int(len);
+
+static char msg[] = "CatOS\n";
+put_int(strlen(msg));</code></pre></div>
+    <h4>备注</h4>
+    <p>crt0 内置，纯用户态实现，无系统调用开销。</p>
+    </section>
+
+    <section id="api-strcmp">
+    <h3>strcmp</h3>
+    <p>原型：<code>int strcmp(char* a, char* b)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 无（crt0 内置） | <strong>分类</strong>: 字符串工具</div>
+    <h4>描述</h4>
+    <p>按字典序比较两个字符串。</p>
+    <h4>参数</h4>
+    <ul><li><code>a</code> (char*): 第一个字符串</li><li><code>b</code> (char*): 第二个字符串</li></ul>
+    <h4>返回值</h4>
+    <p>0 = 相等；&lt;0 = <code>a</code> 小于 <code>b</code>；&gt;0 = <code>a</code> 大于 <code>b</code>。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern int strcmp(char* a, char* b);
+
+if (strcmp("abc", "abc") == 0) { }
+if (strcmp("abc", "abd") &lt; 0) { }
+if (strcmp("abd", "abc") &gt; 0) { }
+
+if (strcmp(cmd, "help") == 0) { }</code></pre></div>
+    <h4>备注</h4>
+    <p>按字节逐字符比较（按 unsigned char 字典序）。比较在遇到 <code>\0</code> 或第一个不等字节时停止。</p>
+    </section>
+
+    <section id="api-strcpy">
+    <h3>strcpy</h3>
+    <p>原型：<code>void strcpy(char* dst, char* src)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 无（crt0 内置） | <strong>分类</strong>: 字符串工具</div>
+    <h4>描述</h4>
+    <p>复制字符串（含结尾 <code>\0</code>）。</p>
+    <h4>参数</h4>
+    <ul><li><code>dst</code> (char*): 目标缓冲区</li><li><code>src</code> (char*): 源字符串</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void strcpy(char* dst, char* src);
+extern void puts(char* str);
+
+char buf[32];
+strcpy(buf, "Hello, CatOS!");
+puts(buf);</code></pre></div>
+    <h4>备注</h4>
+    <p><code>dst</code> 必须有足够空间容纳 <code>src</code>（含 <code>\0</code>），否则会越界写入。不检查缓冲区大小。</p>
+    </section>
+
+    <section id="api-memcpy">
+    <h3>memcpy</h3>
+    <p>原型：<code>void memcpy(char* dst, char* src, int n)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 无（crt0 内置） | <strong>分类</strong>: 字符串工具</div>
+    <h4>描述</h4>
+    <p>复制 <code>n</code> 字节内存从 <code>src</code> 到 <code>dst</code>。</p>
+    <h4>参数</h4>
+    <ul><li><code>dst</code> (char*): 目标地址</li><li><code>src</code> (char*): 源地址</li><li><code>n</code> (int): 字节数</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void memcpy(char* dst, char* src, int n);
+
+char dst[16];
+char src[] = "Hello";
+memcpy(dst, src, 6);
+
+int data[10];
+int backup[10];
+memcpy(backup, data, sizeof(data));</code></pre></div>
+    <h4>备注</h4>
+    <p><strong>不处理内存重叠区域</strong>。若 <code>dst</code> 与 <code>src</code> 重叠，行为未定义。需要处理重叠时请自行实现 memmove。</p>
+    </section>
+
+    <section id="api-memset">
+    <h3>memset</h3>
+    <p>原型：<code>void memset(char* dst, int val, int n)</code></p>
+    <div class="api-meta"><strong>NR</strong>: 无（crt0 内置） | <strong>分类</strong>: 字符串工具</div>
+    <h4>描述</h4>
+    <p>用 <code>val</code> 填充 <code>n</code> 字节内存。</p>
+    <h4>参数</h4>
+    <ul><li><code>dst</code> (char*): 目标地址</li><li><code>val</code> (int): 填充值（取低 8 位）</li><li><code>n</code> (int): 字节数</li></ul>
+    <h4>返回值</h4>
+    <p>无。</p>
+    <h4>示例</h4>
+    <div class="code-block"><button class="copy-btn">copy</button><pre><code lang="c">extern void memset(char* dst, int val, int n);
+
+char buf[256];
+memset(buf, 0, 256);
+memset(buf, 'A', 10);
+buf[10] = '\0';
+
+int data[100];
+memset(data, 0, sizeof(data));</code></pre></div>
+    <h4>备注</h4>
+    <p><code>val</code> 取低 8 位作为填充字节。常用于缓冲区清零（<code>memset(buf, 0, n)</code>）。</p>
+    </section>
+
+    <hr>
+
+    <h2 id="cat-appendix">附录：API 总览表</h2>
+    <p>按系统调用号（NR）排序的完整 API 列表：</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>NR</th><th>函数</th><th>原型</th><th>分类</th></tr></thead>
+            <tbody>
+                <tr><td>0</td><td><code>get_ticks</code></td><td><code>int get_ticks(void)</code></td><td>系统信息</td></tr>
+                <tr><td>1</td><td><code>write</code></td><td><code>int write(char* buf, int len)</code></td><td>控制台输出</td></tr>
+                <tr><td>2</td><td><code>putc</code></td><td><code>void putc(int ch)</code></td><td>控制台输出</td></tr>
+                <tr><td>3</td><td><code>puts</code></td><td><code>void puts(char* str)</code></td><td>控制台输出</td></tr>
+                <tr><td>4</td><td><code>getc</code></td><td><code>int getc(void)</code></td><td>键盘输入</td></tr>
+                <tr><td>5</td><td><code>exit</code></td><td><code>void exit(int code)</code></td><td>系统控制</td></tr>
+                <tr><td>6</td><td><code>clrscr</code></td><td><code>void clrscr(void)</code></td><td>屏幕控制</td></tr>
+                <tr><td>7</td><td><code>gotoxy</code></td><td><code>void gotoxy(int x, int y)</code></td><td>屏幕控制</td></tr>
+                <tr><td>8</td><td><code>get_xy</code></td><td><code>int get_xy(void)</code></td><td>屏幕控制</td></tr>
+                <tr><td>9</td><td><code>get_cols</code></td><td><code>int get_cols(void)</code></td><td>屏幕控制</td></tr>
+                <tr><td>10</td><td><code>get_rows</code></td><td><code>int get_rows(void)</code></td><td>屏幕控制</td></tr>
+                <tr><td>11</td><td><code>get_vmode</code></td><td><code>int get_vmode(void)</code></td><td>屏幕控制</td></tr>
+                <tr><td>12</td><td><code>set_color</code></td><td><code>void set_color(int color)</code></td><td>控制台输出</td></tr>
+                <tr><td>13</td><td><code>putc_color</code></td><td><code>void putc_color(int ch, int color)</code></td><td>控制台输出</td></tr>
+                <tr><td>14</td><td><code>get_pid</code></td><td><code>int get_pid(void)</code></td><td>系统信息</td></tr>
+                <tr><td>15</td><td><code>get_name</code></td><td><code>int get_name(char* buf)</code></td><td>系统信息</td></tr>
+                <tr><td>16</td><td><code>rand</code></td><td><code>int rand(void)</code></td><td>系统信息</td></tr>
+                <tr><td>17</td><td><code>srand</code></td><td><code>void srand(int seed)</code></td><td>系统信息</td></tr>
+                <tr><td>18</td><td><code>put_int</code></td><td><code>void put_int(int n)</code></td><td>控制台输出</td></tr>
+                <tr><td>19</td><td><code>put_uint</code></td><td><code>void put_uint(unsigned int n)</code></td><td>控制台输出</td></tr>
+                <tr><td>20</td><td><code>put_hex</code></td><td><code>void put_hex(unsigned int n, int upper)</code></td><td>控制台输出</td></tr>
+                <tr><td>21</td><td><code>put_bin</code></td><td><code>void put_bin(unsigned int n)</code></td><td>控制台输出</td></tr>
+                <tr><td>22</td><td><code>msleep</code></td><td><code>void msleep(int ms)</code></td><td>系统控制</td></tr>
+                <tr><td>23</td><td><code>getch</code></td><td><code>int getch(void)</code></td><td>键盘输入</td></tr>
+                <tr><td>24</td><td><code>kbhit</code></td><td><code>int kbhit(void)</code></td><td>键盘输入</td></tr>
+                <tr><td>25</td><td><code>scroll</code></td><td><code>void scroll(int lines)</code></td><td>屏幕控制</td></tr>
+                <tr><td>26</td><td><code>set_io_size</code></td><td><code>void set_io_size(int size)</code></td><td>文件 IO</td></tr>
+                <tr><td>27</td><td><code>file_read</code></td><td><code>int file_read(char* name, char* buf, int bufsize)</code></td><td>文件 IO</td></tr>
+                <tr><td>28</td><td><code>file_write</code></td><td><code>int file_write(char* name, char* buf, int size)</code></td><td>文件 IO</td></tr>
+                <tr><td>29</td><td><code>file_delete</code></td><td><code>int file_delete(char* name)</code></td><td>文件 IO</td></tr>
+                <tr><td>30</td><td><code>file_exists</code></td><td><code>int file_exists(char* name)</code></td><td>文件 IO</td></tr>
+                <tr><td>31</td><td><code>file_size</code></td><td><code>int file_size(char* name)</code></td><td>文件 IO</td></tr>
+                <tr><td>32</td><td><code>file_list</code></td><td><code>int file_list(char* buf, int bufsize)</code></td><td>文件 IO</td></tr>
+                <tr><td>33</td><td><code>reboot</code></td><td><code>void reboot(void)</code></td><td>系统控制</td></tr>
+                <tr><td>34</td><td><code>get_key_flags</code></td><td><code>int get_key_flags(void)</code></td><td>键盘输入</td></tr>
+                <tr><td>35</td><td><code>file_append</code></td><td><code>int file_append(char* name, char* buf, int size)</code></td><td>文件 IO</td></tr>
+                <tr><td>36</td><td><code>int_to_str</code></td><td><code>int int_to_str(int value, char* buf, int radix)</code></td><td>类型转换</td></tr>
+                <tr><td>37</td><td><code>atoi</code></td><td><code>int atoi(char* str)</code></td><td>类型转换</td></tr>
+                <tr><td>38</td><td><code>file_stat</code></td><td><code>int file_stat(char* name, int* info)</code></td><td>文件 IO</td></tr>
+                <tr><td>39</td><td><code>spawn</code></td><td><code>int spawn(char* name)</code></td><td>进程管理</td></tr>
+                <tr><td>40</td><td><code>uc_putc</code></td><td><code>void uc_putc(int ch, int attr)</code></td><td>用户控制台</td></tr>
+                <tr><td>41</td><td><code>uc_clear</code></td><td><code>void uc_clear(void)</code></td><td>用户控制台</td></tr>
+                <tr><td>42</td><td><code>win_create</code></td><td><code>int win_create(int x, int y, int w, int h, char* title)</code></td><td>窗口 API</td></tr>
+                <tr><td>43</td><td><code>win_close</code></td><td><code>void win_close(int win_id)</code></td><td>窗口 API</td></tr>
+                <tr><td>44</td><td><code>win_draw_text</code></td><td><code>void win_draw_text(int win_id, int x, int y, char* str, int fg, int bg)</code></td><td>窗口 API</td></tr>
+                <tr><td>45</td><td><code>win_draw_rect</code></td><td><code>void win_draw_rect(int win_id, int x, int y, int w, int h, int color)</code></td><td>窗口 API</td></tr>
+                <tr><td>46</td><td><code>win_get_event</code></td><td><code>int win_get_event(int win_id, int* type, int* x, int* y)</code></td><td>窗口 API</td></tr>
+                <tr><td>47</td><td><code>win_clear</code></td><td><code>void win_clear(int win_id, int color)</code></td><td>窗口 API</td></tr>
+                <tr><td>48</td><td><code>win_set_title</code></td><td><code>void win_set_title(int win_id, char* title)</code></td><td>窗口 API</td></tr>
+                <tr><td>49</td><td><code>win_draw_line</code></td><td><code>void win_draw_line(int win_id, int x1, int y1, int x2, int y2, int color)</code></td><td>窗口 API</td></tr>
+                <tr><td>50</td><td><code>win_set_pixel</code></td><td><code>void win_set_pixel(int win_id, int x, int y, int color)</code></td><td>窗口 API</td></tr>
+                <tr><td>51</td><td><code>win_peek_event</code></td><td><code>int win_peek_event(int win_id, int* type, int* x, int* y)</code></td><td>窗口 API</td></tr>
+                <tr><td>52</td><td><code>win_get_size</code></td><td><code>int win_get_size(int win_id, int* w, int* h)</code></td><td>窗口 API</td></tr>
+                <tr><td>53</td><td><code>win_set_closable</code></td><td><code>void win_set_closable(int win_id, int closable)</code></td><td>窗口 API</td></tr>
+                <tr><td>54</td><td><code>win_get_closable</code></td><td><code>int win_get_closable(int win_id)</code></td><td>窗口 API</td></tr>
+                <tr><td>—</td><td><code>strlen</code></td><td><code>int strlen(char* str)</code></td><td>字符串工具 (crt0)</td></tr>
+                <tr><td>—</td><td><code>strcmp</code></td><td><code>int strcmp(char* a, char* b)</code></td><td>字符串工具 (crt0)</td></tr>
+                <tr><td>—</td><td><code>strcpy</code></td><td><code>void strcpy(char* dst, char* src)</code></td><td>字符串工具 (crt0)</td></tr>
+                <tr><td>—</td><td><code>memcpy</code></td><td><code>void memcpy(char* dst, char* src, int n)</code></td><td>字符串工具 (crt0)</td></tr>
+                <tr><td>—</td><td><code>memset</code></td><td><code>void memset(char* dst, int val, int n)</code></td><td>字符串工具 (crt0)</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p>如需了解完整开发流程，请参阅 <a href="developer.html">开发指南</a>。</p>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    var sidebar = document.getElementById('sidebar');
+    var menuToggle = document.getElementById('menuToggle');
+    var sidebarOverlay = document.getElementById('sidebarOverlay');
+    function openSidebar() { sidebar.classList.add('open'); sidebarOverlay.classList.add('show'); }
+    function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('show'); }
+    function isMobile() { return window.innerWidth < 900; }
+    menuToggle.addEventListener('click', function() {
+        if (sidebar.classList.contains('open')) { closeSidebar(); } else { openSidebar(); }
+    });
+    sidebarOverlay.addEventListener('click', closeSidebar);
+    var sidebarLinks = sidebar.querySelectorAll('a');
+    for (var i = 0; i < sidebarLinks.length; i++) {
+        sidebarLinks[i].addEventListener('click', function() { if (isMobile()) { closeSidebar(); } });
+    }
+    window.addEventListener('resize', function() { if (!isMobile()) { closeSidebar(); } });
+    var categoryHeadings = [];
+    var catLinks = sidebar.querySelectorAll('ol.toc > li.cat-group > a');
+    for (var i = 0; i < catLinks.length; i++) {
+        var href = catLinks[i].getAttribute('href') || '';
+        if (href.charAt(0) === '#') { var sec = document.getElementById(href.slice(1)); if (sec) { categoryHeadings.push({ link: catLinks[i], el: sec }); } }
+    }
+    var apiEntries = [];
+    var apiLinks = sidebar.querySelectorAll('ul.api-list a');
+    for (var j = 0; j < apiLinks.length; j++) {
+        var ahref = apiLinks[j].getAttribute('href') || '';
+        if (ahref.charAt(0) === '#') { var asec = document.getElementById(ahref.slice(1)); if (asec) { apiEntries.push({ link: apiLinks[j], el: asec }); } }
+    }
+    function updateActiveSection() {
+        var scrollY = window.pageYOffset + 80;
+        var currentCat = null, currentApi = null;
+        for (var i = 0; i < categoryHeadings.length; i++) { if (categoryHeadings[i].el.offsetTop <= scrollY) { currentCat = categoryHeadings[i].link; } }
+        for (var k = 0; k < categoryHeadings.length; k++) { categoryHeadings[k].link.classList.remove('active'); }
+        if (currentCat) { currentCat.classList.add('active'); }
+        for (var m = 0; m < apiEntries.length; m++) { if (apiEntries[m].el.offsetTop <= scrollY) { currentApi = apiEntries[m].link; } }
+        for (var n = 0; n < apiEntries.length; n++) { apiEntries[n].link.classList.remove('active'); }
+        if (currentApi) { currentApi.classList.add('active'); }
+    }
+    window.addEventListener('scroll', updateActiveSection);
+    updateActiveSection();
+    var backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', function() { if (window.pageYOffset > 500) { backToTop.classList.add('show'); } else { backToTop.classList.remove('show'); } });
+    backToTop.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    var KEYWORDS = ['void','int','char','unsigned','signed','short','long','float','double','if','else','for','while','do','switch','case','break','continue','return','extern','static','const','volatile','struct','union','enum','typedef','sizeof','register','auto','goto','default','define','include','ifdef','endif'];
+    function highlightCode(code) {
+        var tokens = [];
+        function push(html) { tokens.push(html); return '\x00' + (tokens.length - 1) + '\x00'; }
+        var text = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        text = text.replace(/\/\*[\s\S]*?\*\//g,function(m){return push('<span class="hl-comment">'+m+'</span>');});
+        text = text.replace(/\/\/[^\n]*/g,function(m){return push('<span class="hl-comment">'+m+'</span>');});
+        text = text.replace(/;[^\n]*/g,function(m){return push('<span class="hl-comment">'+m+'</span>');});
+        text = text.replace(/"(?:[^"\\]|\\.)*"/g,function(m){return push('<span class="hl-string">'+m+'</span>');});
+        text = text.replace(/'(?:[^'\\]|\\.)*'/g,function(m){return push('<span class="hl-string">'+m+'</span>');});
+        var kwPattern = new RegExp('\\b('+KEYWORDS.join('|')+')\\b','g');
+        text = text.replace(kwPattern,function(m,kw){return push('<span class="hl-keyword">'+kw+'</span>');});
+        text = text.replace(/\b(0x[0-9A-Fa-f]+|\d+)\b/g,function(m){return push('<span class="hl-number">'+m+'</span>');});
+        text = text.replace(/\x00(\d+)\x00/g,function(_,idx){return tokens[parseInt(idx,10)];});
+        return text;
+    }
+    var codeBlocks = document.querySelectorAll('pre code[lang]');
+    for (var i = 0; i < codeBlocks.length; i++) { var block = codeBlocks[i]; var raw = block.textContent; block.innerHTML = highlightCode(raw); }
+    var copyBtns = document.querySelectorAll('.copy-btn');
+    for (var i = 0; i < copyBtns.length; i++) {
+        copyBtns[i].addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            var btn = this; var pre = btn.parentNode.querySelector('pre'); if (!pre) return;
+            var text = pre.innerText || pre.textContent;
+            function done() {
+                var original = btn.textContent; btn.textContent = 'copied!'; btn.classList.add('copied');
+                setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1500);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done).catch(function(){fallbackCopy(text,done);}); }
+            else { fallbackCopy(text,done); }
+        });
+    }
+    function fallbackCopy(text,cb) {
+        var ta = document.createElement('textarea'); ta.value = text;
+        ta.style.position='fixed'; ta.style.top='-9999px'; document.body.appendChild(ta);
+        ta.select(); try { document.execCommand('copy'); cb(); } catch(err) {} document.body.removeChild(ta);
+    }
+})();
+</script>
+</body>
+</html>

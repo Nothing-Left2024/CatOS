@@ -1,0 +1,31 @@
+###############################################################
+# bochsrc.bxrc file for CatOS.
+###############################################################
+
+# how much memory the emulated machine will have
+megs: 32
+
+# filename of ROM images
+romimage: file=$BXSHARE/BIOS-bochs-latest, address=0xf0000
+vgaromimage: $BXSHARE/VGABIOS-elpin-2.40
+
+# what disk images will be used
+# 软盘: FAT12 引导盘 (含 boot + loader + kernel)
+floppya: 1_44=catos.img, status=inserted
+
+# 硬盘: FAT32 镜像 (用于 diskinfo/dir/type/format/touch 命令测试)
+# 默认使用 FAT32 镜像; 若需测试 FAT16, 改为 catos_hd.img
+ata0-master: type=disk, path="catos_hd32.img", mode=flat, cylinders=520, heads=16, spt=63
+# ata0-master: type=disk, path="catos_hd.img", mode=flat, cylinders=20, heads=16, spt=63
+
+# choose the boot disk.
+boot: a
+
+# where do we send log messages?
+log: bochsout.txt
+
+# disable the mouse, since CatOS is text only
+mouse: enabled=0
+
+# enable key mapping, using US layout as default.
+keyboard_mapping: enabled=1, map=$BXSHARE/keymaps/x11-pc-us.map

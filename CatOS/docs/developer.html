@@ -1,0 +1,2536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CatOS 开发者指南</title>
+<style>
+  :root {
+    --primary: #7c3aed;
+    --primary-light: #a78bfa;
+    --primary-dark: #5b21b6;
+    --primary-bg: #f5f3ff;
+    --bg: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-code: #1e293b;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --border: #e2e8f0;
+    --sidebar-width: 260px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "HarmonyOS Sans", "Source Han Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ===== Scrollbar ===== */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+  /* ===== Sidebar ===== */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sidebar-logo .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 18px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo .logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .sidebar-logo .logo-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: -2px;
+  }
+
+  .sidebar-nav {
+    padding: 12px 0;
+  }
+
+  .sidebar-nav .nav-section {
+    padding: 8px 20px 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+
+  .sidebar-nav a:hover {
+    background: rgba(124, 58, 237, 0.1);
+    color: var(--text);
+  }
+
+  .sidebar-nav a.active {
+    color: var(--primary);
+    border-left-color: var(--primary);
+    background: var(--primary-bg);
+    font-weight: 600;
+  }
+
+  .sidebar-nav a .nav-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+  }
+
+  /* ===== TOC in sidebar ===== */
+  .sidebar-toc {
+    padding: 8px 0 20px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+
+  .sidebar-toc .toc-item {
+    display: block;
+    padding: 5px 20px 5px 33px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 12.5px;
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sidebar-toc .toc-item:hover {
+    color: var(--text-secondary);
+    background: rgba(124, 58, 237, 0.05);
+  }
+
+  .sidebar-toc .toc-item.active {
+    color: var(--primary);
+    border-left-color: var(--primary);
+    background: var(--primary-bg);
+  }
+
+  /* ===== Main Content ===== */
+  .main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-height: 100vh;
+    max-width: calc(100% - var(--sidebar-width));
+  }
+
+  .content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 48px 80px;
+  }
+
+  /* ===== Article Header ===== */
+  .article-header {
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .article-header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary-light), #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .article-header p {
+    color: var(--text-secondary);
+    font-size: 15px;
+  }
+
+  /* ===== Typography ===== */
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 40px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+    color: var(--text);
+  }
+
+  h2 .hash-link {
+    color: var(--primary);
+    opacity: 0.4;
+    text-decoration: none;
+    margin-left: 8px;
+    font-weight: 400;
+  }
+
+  h2 .hash-link:hover { opacity: 1; }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 28px 0 12px;
+    color: var(--primary);
+  }
+
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    color: var(--text);
+  }
+
+  p { margin: 12px 0; }
+
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  strong { color: var(--text); font-weight: 600; }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 36px 0;
+  }
+
+  ul, ol { margin: 12px 0; padding-left: 24px; }
+  li { margin: 6px 0; }
+
+  blockquote {
+    margin: 16px 0;
+    padding: 12px 20px;
+    background: rgba(124, 58, 237, 0.08);
+    border-left: 4px solid var(--primary-light);
+    border-radius: 0 6px 6px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  blockquote p { margin: 0; }
+
+  .note {
+    margin: 16px 0;
+    padding: 12px 20px;
+    background: rgba(251, 191, 36, 0.08);
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 6px 6px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .note strong { color: #f59e0b; }
+
+  .strikethrough { text-decoration: line-through; color: var(--text-muted); }
+
+  /* ===== Code ===== */
+  code {
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+    font-size: 13px;
+    background: rgba(124, 58, 237, 0.12);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  pre {
+    position: relative;
+    margin: 16px 0;
+    background: var(--bg-code);
+    border-left: 3px solid var(--primary);
+    border-radius: 0 8px 8px 0;
+    overflow: hidden;
+  }
+
+  pre .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.2s;
+    z-index: 2;
+  }
+
+  pre:hover .copy-btn { opacity: 1; }
+
+  pre .copy-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  pre .copy-btn.copied {
+    background: #10b981;
+    color: #fff;
+    border-color: #10b981;
+  }
+
+  pre code {
+    display: block;
+    padding: 16px 20px;
+    background: transparent;
+    color: #e2e8f0;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    tab-size: 4;
+  }
+
+  /* Syntax Highlighting */
+  .hljs-comment { color: #94a3b8; font-style: italic; }
+  .hljs-keyword { color: #fff; font-weight: 700; }
+  .hljs-string { color: #94a3b8; }
+  .hljs-number { color: #94a3b8; }
+  .hljs-function { color: #a78bfa; }
+  .hljs-title { color: #a78bfa; }
+  .hljs-built_in { color: #7c3aed; }
+  .hljs-type { color: #facc15; }
+  .hljs-attr { color: #a78bfa; }
+  .hljs-params { color: #e2e8f0; }
+  .hljs-literal { color: #facc15; }
+  .hljs-symbol { color: #facc15; }
+  .hljs-variable { color: #e2e8f0; }
+  .hljs-punctuation { color: #e2e8f0; }
+  .hljs-property { color: #a78bfa; }
+  .hljs-selector-class { color: #a78bfa; }
+  .hljs-selector-tag { color: #fff; font-weight: 700; }
+  .hljs-meta { color: #94a3b8; }
+  .hljs-meta .hljs-keyword { color: #94a3b8; font-weight: 400; }
+  .hljs-meta .hljs-string { color: #94a3b8; }
+  .hljs-selector-id { color: #facc15; }
+  .hljs-selector-pseudo { color: #a78bfa; }
+  .hljs-addition { color: #34d399; }
+  .hljs-deletion { color: #f87171; }
+  .hljs-bullet { color: #38bdf8; }
+  .hljs-link { color: #38bdf8; text-decoration: underline; }
+  .hljs-emphasis { font-style: italic; }
+  .hljs-strong { font-weight: bold; }
+  .hljs-operator { color: #c084fc; }
+  .hljs-section { color: #fbbf24; }
+  .hljs-attribute { color: #a78bfa; }
+
+  /* ===== Tables ===== */
+  .table-wrap {
+    margin: 16px 0;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead { background: var(--primary); }
+
+  th {
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  tbody tr:nth-child(even) { background: rgba(124, 58, 237, 0.04); }
+  tbody tr:nth-child(odd) { background: transparent; }
+  tbody tr:hover { background: rgba(124, 58, 237, 0.1); }
+
+  td code {
+    font-size: 12px;
+    padding: 1px 5px;
+  }
+
+  /* ===== Art/ASCII boxes ===== */
+  .ascii-art {
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* ===== Back to Top ===== */
+  .back-to-top {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 44px;
+    height: 44px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+    transition: all 0.25s;
+    z-index: 50;
+    box-shadow: 0 4px 24px rgba(124, 58, 237, 0.3);
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .back-to-top:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(124, 58, 237, 0.4);
+  }
+
+  /* ===== Hamburger ===== */
+  .hamburger {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    width: 40px;
+    height: 40px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .hamburger { display: flex; }
+    .sidebar-overlay.active { display: block; }
+
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+      transform: translateX(0);
+    }
+
+    .main {
+      margin-left: 0;
+      max-width: 100%;
+    }
+
+    .content {
+      padding: 24px 20px 60px;
+    }
+
+    .article-header h1 { font-size: 24px; }
+
+    .back-to-top {
+      bottom: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .content { padding: 16px 14px 40px; }
+    .article-header h1 { font-size: 20px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 16px; }
+    pre code { font-size: 12px; padding: 12px 14px; }
+    th, td { padding: 7px 10px; font-size: 13px; }
+  }
+
+  /* ===== Stripe row for limitation table checkmark ===== */
+  .check { color: #34d399; }
+  .pending-icon { color: #f59e0b; }
+</style>
+</head>
+<body>
+
+<!-- Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Hamburger -->
+<button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar">☰</button>
+
+<!-- ===== Sidebar ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="index.html" style="display:flex;align-items:center;gap:12px;text-decoration:none;">
+      <svg width="36" height="36" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#7c3aed"/>
+        <text x="16" y="22" text-anchor="middle" fill="#fff" font-size="18" font-weight="bold" font-family="sans-serif">C</text>
+      </svg>
+      <div>
+        <div style="font-size:18px;font-weight:700;color:#1e293b;">CatOS</div>
+        <div style="font-size:11px;color:#64748b;margin-top:-2px;">开发者指南</div>
+      </div>
+    </a>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="index.html"><span class="nav-icon">🏠</span> 首页</a>
+    <a href="developer.html" class="active"><span class="nav-icon">📘</span> 开发指南</a>
+    <a href="api.html"><span class="nav-icon">📡</span> API 参考</a>
+  </nav>
+
+  <div class="sidebar-toc" id="sidebarToc">
+    <div class="nav-section">目录</div>
+    <a href="#sec1" class="toc-item">快速开始</a>
+    <a href="#sec2" class="toc-item">工具链要求</a>
+    <a href="#sec3" class="toc-item">CE 可执行文件格式</a>
+    <a href="#sec4" class="toc-item">内存布局与段隔离</a>
+    <a href="#sec5" class="toc-item">系统调用 API</a>
+    <a href="#sec6" class="toc-item">编写用户程序</a>
+    <a href="#sec7" class="toc-item">构建与打包</a>
+    <a href="#sec8" class="toc-item">在 CatOS 中运行</a>
+    <a href="#sec9" class="toc-item">限制与注意事项</a>
+    <a href="#sec10" class="toc-item">示例程序详解</a>
+    <a href="#sec11" class="toc-item">常见问题</a>
+    <a href="#sec12" class="toc-item">未来路线图</a>
+    <a href="#appendix" class="toc-item">附录</a>
+  </div>
+</aside>
+
+<!-- ===== Main Content ===== -->
+<div class="main">
+<div class="content">
+
+<div class="article-header">
+  <h1>CatOS 用户程序开发指南</h1>
+  <p>本指南面向希望为 CatOS 编写独立软件的开发者。CatOS 支持通过 CE（CatOS Executable）格式的可执行文件加载并运行用户程序，开发者无需重新编译内核即可分发软件。</p>
+</div>
+
+<!-- ===== 1. 快速开始 ===== -->
+<h2 id="sec1">1. 快速开始</h2>
+
+<pre><code class="language-bash"><span class="hljs-built_in">cd</span> sdk
+make           <span class="hljs-comment"># 编译生成 hello.ce</span></code></pre>
+
+<p>将 <code>hello.ce</code> 放入 CatOS 的 FAT 文件系统镜像后，在 CatOS shell 中执行：</p>
+
+<pre><code>CatOS&gt; run hello.ce</code></pre>
+
+<p>预期输出：</p>
+
+<pre><code>Running: hello.ce
+Hello, CatOS!
+This is a user program running in ring 3.
+System call test: ABC
+Int:  -42 0 2147483647
+UInt: 4000000000
+Hex:  0xDEADBEEF / 0xdeadbeef
+Bin:  10110100
+Delay 500ms...
+Ticks elapsed: 50
+Program exited (code 42)</code></pre>
+
+<hr>
+
+<!-- ===== 2. 工具链要求 ===== -->
+<h2 id="sec2">2. 工具链要求</h2>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>工具</th>
+    <th>用途</th>
+    <th>最低版本</th>
+    <th>备注</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td><code>GCC</code></td>
+    <td>编译 C 源码</td>
+    <td>任意支持 <code>-m32</code> 的版本</td>
+    <td>推荐 <code>i686-w64-mingw32-gcc</code></td>
+  </tr>
+  <tr>
+    <td><code>NASM</code></td>
+    <td>汇编 crt0.asm</td>
+    <td>2.13+</td>
+    <td>使用 <code>-f win32</code> 格式</td>
+  </tr>
+  <tr>
+    <td><code>objcopy</code></td>
+    <td>提取 flat binary</td>
+    <td>随 binutils</td>
+    <td>由 <code>mkcate.py</code> 自动调用</td>
+  </tr>
+  <tr>
+    <td><code>Python</code></td>
+    <td>运行 mkcate.py</td>
+    <td>3.6+</td>
+    <td>用于生成 CE 头</td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+<h3>安装提示</h3>
+
+<p><strong>Windows (MinGW)</strong>：</p>
+
+<pre><code class="language-bash"><span class="hljs-comment"># 确认 gcc 支持 32 位编译</span>
+gcc -m32 -c test.c -o test.o</code></pre>
+
+<p><strong>Linux (交叉编译)</strong>：</p>
+
+<pre><code class="language-bash">sudo apt install gcc-mingw-w64-i686 nasm python3 binutils-mingw-w64-i686</code></pre>
+
+<p>Makefile 会自动检测 <code>i686-w64-mingw32-gcc</code>，若不存在则回退到系统 <code>gcc</code>。</p>
+
+<hr>
+
+<!-- ===== 3. CE 可执行文件格式 ===== -->
+<h2 id="sec3">3. CE 可执行文件格式</h2>
+
+<p>CE（CatOS Executable）是 CatOS 自定义的简单可执行文件格式，专为裸机环境设计，避免解析复杂 ELF/PE 的开销。</p>
+
+<h3>文件结构</h3>
+
+<pre><code>┌──────────────────────────┐  偏移 0
+│       CE Header          │  64 字节
+├──────────────────────────┤  偏移 64
+│   text + data 原始字节   │  (text_size + data_size) 字节
+└──────────────────────────┘</code></pre>
+
+<div class="note">
+  <strong>注意</strong>：BSS 段不占文件空间，加载时由内核清零。
+</div>
+
+<h3>头部字段（64 字节，小端序）</h3>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>偏移</th>
+    <th>长度</th>
+    <th>字段</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td><code>0</code></td>
+    <td>4</td>
+    <td><code>magic</code></td>
+    <td>固定 <code>0x00014543</code>（小端 <code>'CE\x01\x00'</code>）</td>
+  </tr>
+  <tr>
+    <td><code>4</code></td>
+    <td>2</td>
+    <td><code>version</code></td>
+    <td>格式版本，当前为 <code>1</code></td>
+  </tr>
+  <tr>
+    <td><code>6</code></td>
+    <td>2</td>
+    <td><code>flags</code></td>
+    <td>标志位，bit0=32位</td>
+  </tr>
+  <tr>
+    <td><code>8</code></td>
+    <td>4</td>
+    <td><code>entry</code></td>
+    <td>入口偏移（相对段基址，即 <code>_start</code> 的地址）</td>
+  </tr>
+  <tr>
+    <td><code>12</code></td>
+    <td>4</td>
+    <td><code>text_size</code></td>
+    <td>代码段字节数（含 .rodata/.rdata）</td>
+  </tr>
+  <tr>
+    <td><code>16</code></td>
+    <td>4</td>
+    <td><code>data_size</code></td>
+    <td>数据段字节数</td>
+  </tr>
+  <tr>
+    <td><code>20</code></td>
+    <td>4</td>
+    <td><code>bss_size</code></td>
+    <td>BSS 段字节数（加载时清零）</td>
+  </tr>
+  <tr>
+    <td><code>24</code></td>
+    <td>4</td>
+    <td><code>stack_size</code></td>
+    <td>请求的栈大小（当前未使用）</td>
+  </tr>
+  <tr>
+    <td><code>28</code></td>
+    <td>4</td>
+    <td><code>total_size</code></td>
+    <td>text+data+bss 总大小（用于校验）</td>
+  </tr>
+  <tr>
+    <td><code>32</code></td>
+    <td>28</td>
+    <td><code>name</code></td>
+    <td>程序名称（ASCII，以 <code>\0</code> 结尾，最多27字符）</td>
+  </tr>
+  <tr>
+    <td><code>60</code></td>
+    <td>4</td>
+    <td><code>header_crc</code></td>
+    <td>头部 CRC32（预留，当前为 0）</td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+<h3>校验规则</h3>
+
+<p>内核加载时会进行以下校验，任一失败则拒绝执行：</p>
+
+<ol>
+  <li>文件前 4 字节必须等于 <code>0x00014543</code>（CE v1 魔数）</li>
+  <li><code>version</code> 必须等于 <code>1</code></li>
+  <li>若 <code>total_size != 0</code>，必须等于 <code>text_size + data_size + bss_size</code></li>
+  <li><code>text_size + data_size + bss_size</code> 不得超过 124KB（0x1F000）</li>
+  <li>文件总长度至少 64 字节（头部大小）</li>
+  <li>文件实际内容至少 <code>64 + text_size + data_size</code> 字节</li>
+</ol>
+
+<hr>
+
+<!-- ===== 4. 内存布局与段隔离 ===== -->
+<h2 id="sec4">4. 内存布局与段隔离</h2>
+
+<h3>用户程序地址空间</h3>
+
+<p>CatOS 使用 x86 LDT（局部描述符表）实现段级内存隔离，每个用户程序拥有独立的 128KB 地址空间：</p>
+
+<pre><code class="language-plaintext">线性地址              段内偏移         内容
+0x100000  ┄┄┄┄┄┄┄┄┄   0x00000   ┄┄ 用户程序加载基址 (USER_PROC_BASE)
+         │                        │
+         │  .text + .rodata       │  ← 从文件加载
+         │                        │
+         ├────────────────────────┤
+         │  .data                 │  ← 从文件加载
+         ├────────────────────────┤
+         │  .bss                  │  ← 加载时清零
+         ├────────────────────────┤
+         │  (空闲)                │
+         ├────────────────────────┤   0x10000   ← esp 初始值
+         │  stack ↓               │
+0x120000  ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄   ┄┄ 128KB 边界 (USER_PROC_SIZE)</code></pre>
+
+<h3>段描述符</h3>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>段</th>
+    <th>选择子</th>
+    <th>base</th>
+    <th>limit</th>
+    <th>DPL</th>
+    <th>类型</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td><code>CS (LDT[0])</code></td>
+    <td><code>0x07</code></td>
+    <td><code>0x100000</code></td>
+    <td>128KB</td>
+    <td>3</td>
+    <td>代码段（可执行、可读）</td>
+  </tr>
+  <tr>
+    <td><code>DS/SS (LDT[1])</code></td>
+    <td><code>0x0F</code></td>
+    <td><code>0x100000</code></td>
+    <td>128KB</td>
+    <td>3</td>
+    <td>数据段（可读写）</td>
+  </tr>
+  <tr>
+    <td><code>GS</code></td>
+    <td><code>0x00</code></td>
+    <td>—</td>
+    <td>—</td>
+    <td>—</td>
+    <td>空选择子（禁止访问显存）</td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+<h3>链接地址</h3>
+
+<p>用户程序链接地址为 <strong>0</strong>（相对段基址）。<code>user.ld</code> 中 <code>. = 0</code>，所有符号地址都是段内偏移。内核加载时设置 LDT base=0x100000，CPU 自动将段内偏移映射到线性地址。</p>
+
+<h3>特权级</h3>
+
+<p>用户程序运行在 <strong>Ring 3</strong>（最低特权级）：</p>
+
+<ul>
+  <li>禁止执行特权指令：<code>cli</code>、<code>sti</code>、<code>hlt</code>、<code>in</code>、<code>out</code>（无 IOPL）</li>
+  <li>禁止直接访问硬件（显存、端口、硬盘等）</li>
+  <li>所有 I/O 必须通过系统调用完成</li>
+  <li>违规操作触发 #GP（General Protection Fault），内核会终止程序并恢复 shell</li>
+</ul>
+
+<hr>
+
+<!-- ===== 5. 系统调用 API ===== -->
+<h2 id="sec5">5. 系统调用 API</h2>
+
+<p>用户程序通过 <code>int 0x90</code> 软中断发起系统调用。参数通过寄存器传递：</p>
+
+<ul>
+  <li><code>eax</code> = 系统调用号</li>
+  <li><code>ebx</code> = 第一个参数</li>
+  <li><code>ecx</code> = 第二个参数</li>
+  <li>返回值在 <code>eax</code></li>
+</ul>
+
+<h3>可用系统调用（按功能分组）</h3>
+
+<p>共 53 个系统调用（NR 0~52）+ 5 个 crt0 内置字符串工具函数，下面按功能类别分组列出。</p>
+
+<h4>控制台输出</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>1</td><td><code>write</code></td><td><code>int write(char* buf, int len)</code></td><td>写入缓冲区到控制台，返回写入字节数</td></tr>
+  <tr><td>2</td><td><code>putc</code></td><td><code>void putc(int ch)</code></td><td>输出单个字符（按 <code>set_color</code> 设定的颜色）</td></tr>
+  <tr><td>3</td><td><code>puts</code></td><td><code>void puts(char* str)</code></td><td>输出以 <code>\0</code> 结尾的字符串</td></tr>
+  <tr><td>12</td><td><code>set_color</code></td><td><code>void set_color(int color)</code></td><td>设置后续 <code>putc</code>/<code>puts</code>/<code>write</code> 的默认属性</td></tr>
+  <tr><td>13</td><td><code>putc_color</code></td><td><code>void putc_color(int ch, int color)</code></td><td>输出一个带指定颜色的字符（不改默认）</td></tr>
+  <tr><td>18</td><td><code>put_int</code></td><td><code>void put_int(int n)</code></td><td>输出有符号十进制整数（如 -42、0、2147483647）</td></tr>
+  <tr><td>19</td><td><code>put_uint</code></td><td><code>void put_uint(unsigned int n)</code></td><td>输出无符号十进制整数（如 4000000000）</td></tr>
+  <tr><td>20</td><td><code>put_hex</code></td><td><code>void put_hex(unsigned int n, int upper)</code></td><td>输出十六进制，upper=1 大写 A-F，0 小写 a-f</td></tr>
+  <tr><td>21</td><td><code>put_bin</code></td><td><code>void put_bin(unsigned int n)</code></td><td>输出二进制（不含前导零，0 输出 "0"）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>键盘输入</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>4</td><td><code>getc</code></td><td><code>int getc(void)</code></td><td>非阻塞读键盘，无按键返回 -1（只返回低 8 位 ASCII）</td></tr>
+  <tr><td>23</td><td><code>getch</code></td><td><code>int getch(void)</code></td><td>阻塞读取一个键，返回 <strong>16 位键值</strong>（含扩展键标志）</td></tr>
+  <tr><td>24</td><td><code>kbhit</code></td><td><code>int kbhit(void)</code></td><td>检测键盘是否有按键（不消费），返回 1=有 / 0=无</td></tr>
+  <tr><td>34</td><td><code>get_key_flags</code></td><td><code>int get_key_flags(void)</code></td><td>获取修饰键状态位掩码（Shift/Ctrl/Alt/Lock）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>屏幕控制</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>6</td><td><code>clrscr</code></td><td><code>void clrscr(void)</code></td><td>清屏并将光标复位到左上角</td></tr>
+  <tr><td>7</td><td><code>gotoxy</code></td><td><code>void gotoxy(int x, int y)</code></td><td>移动光标到字符坐标 (x, y)</td></tr>
+  <tr><td>8</td><td><code>get_xy</code></td><td><code>int get_xy(void)</code></td><td>返回 <code>(x & 0xFFFF) | (y &lt;&lt; 16)</code>，当前光标坐标</td></tr>
+  <tr><td>9</td><td><code>get_cols</code></td><td><code>int get_cols(void)</code></td><td>屏幕字符列数（文本=80，图形=40）</td></tr>
+  <tr><td>10</td><td><code>get_rows</code></td><td><code>int get_rows(void)</code></td><td>屏幕字符行数（通常 25）</td></tr>
+  <tr><td>11</td><td><code>get_vmode</code></td><td><code>int get_vmode(void)</code></td><td>当前视频模式（0=文本，1=图形 VGA13）</td></tr>
+  <tr><td>25</td><td><code>scroll</code></td><td><code>void scroll(int lines)</code></td><td>屏幕向上滚动 N 行</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>文件 IO</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>26</td><td><code>set_io_size</code></td><td><code>void set_io_size(int size)</code></td><td>设置后续 <code>file_read</code>/<code>file_write</code>/<code>file_list</code>/<code>file_append</code>/<code>int_to_str</code> 的第三参数</td></tr>
+  <tr><td>27</td><td><code>file_read</code></td><td><code>int file_read(char* name, char* buf, int bufsize)</code></td><td>读取文件内容到 buf，返回读取字节数 / -1 失败</td></tr>
+  <tr><td>28</td><td><code>file_write</code></td><td><code>int file_write(char* name, char* buf, int size)</code></td><td>写入文件（不存在则创建，已存在则覆盖），返回写入字节数 / -1</td></tr>
+  <tr><td>29</td><td><code>file_delete</code></td><td><code>int file_delete(char* name)</code></td><td>删除文件，返回 0 成功 / -1 失败</td></tr>
+  <tr><td>30</td><td><code>file_exists</code></td><td><code>int file_exists(char* name)</code></td><td>检查文件是否存在，返回 1=存在 / 0=不存在</td></tr>
+  <tr><td>31</td><td><code>file_size</code></td><td><code>int file_size(char* name)</code></td><td>获取文件大小（字节数），返回 -1 表示文件不存在</td></tr>
+  <tr><td>32</td><td><code>file_list</code></td><td><code>int file_list(char* buf, int bufsize)</code></td><td>列出根目录所有文件名（<code>\n</code> 分隔），返回文件数</td></tr>
+  <tr><td>35</td><td><code>file_append</code></td><td><code>int file_append(char* name, char* buf, int size)</code></td><td>追加数据到文件末尾（不覆盖原内容），返回 0 成功 / -1 失败</td></tr>
+  <tr><td>38</td><td><code>file_stat</code></td><td><code>int file_stat(char* name, int* info)</code></td><td>获取文件详细信息，info[0]=大小, info[1]=属性；返回 0 成功 / -1 失败</td></tr>
+</tbody>
+</table>
+</div>
+
+<blockquote>
+  <p><strong>文件名格式</strong>：FAT 8.3 短文件名（如 <code>"hello.ce"</code>、<code>"data.txt"</code>）。文件名不区分大小写，内核内部转大写匹配。</p>
+  <p><strong><code>file_append</code></strong>：向文件末尾追加数据，不覆盖原有内容。文件不存在时自动创建。适合日志写入等场景。</p>
+  <p><strong><code>file_stat</code></strong>：info 为 <code>int[2]</code> 数组：<code>info[0]</code>=文件大小（字节），<code>info[1]</code>=FAT 属性字节（0x20=普通归档文件）。</p>
+</blockquote>
+
+<h4>系统信息</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>0</td><td><code>get_ticks</code></td><td><code>int get_ticks(void)</code></td><td>获取系统时钟滴答数（100Hz，1 tick = 10ms）</td></tr>
+  <tr><td>14</td><td><code>get_pid</code></td><td><code>int get_pid(void)</code></td><td>获取当前进程的 PID</td></tr>
+  <tr><td>15</td><td><code>get_name</code></td><td><code>int get_name(char* buf)</code></td><td>把进程名复制到 buf，返回长度（不含 <code>\0</code>）</td></tr>
+  <tr><td>16</td><td><code>rand</code></td><td><code>int rand(void)</code></td><td>伪随机数，返回 [0, 32767]</td></tr>
+  <tr><td>17</td><td><code>srand</code></td><td><code>void srand(int seed)</code></td><td>设置随机种子</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>系统控制</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>5</td><td><code>exit</code></td><td><code>void exit(int code)</code></td><td>终止程序（不返回），code 为退出码</td></tr>
+  <tr><td>22</td><td><code>msleep</code></td><td><code>void msleep(int ms)</code></td><td>毫秒级延时（基于 100Hz 时钟，精度 10ms）</td></tr>
+  <tr><td>33</td><td><code>reboot</code></td><td><code>void reboot(void)</code></td><td>重启系统（通过 8042 键盘控制器复位，不返回）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>进程管理（Phase 3 新增）</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>39</td><td><code>spawn</code></td><td><code>int spawn(char* name)</code></td><td>启动另一个 CE 程序（总是非阻塞，返回槽位号）</td></tr>
+</tbody>
+</table>
+</div>
+
+<blockquote>
+  <p><strong><code>spawn</code></strong> 参数说明：</p>
+  <ul>
+    <li><code>name</code>：要启动的 CE 可执行文件名（如 <code>"hello.ce"</code>）</li>
+    <li><strong>总是非阻塞</strong>：启动后立即返回，返回值 = 槽位号（<code>&gt;=0</code> 成功，<code>&lt;0</code> 失败）</li>
+    <li><strong>安全策略</strong>：阻塞/非阻塞的选择不对应用开放（避免恶意程序用阻塞模式卡住系统），改由 shell <code>run</code> 命令的 <code>&amp;</code> 参数控制</li>
+    <li>失败返回值：<code>-1</code>=文件系统错误/文件不存在，<code>-2</code>=格式错误，<code>-3</code>=过大，<code>-4</code>=槽位已满</li>
+  </ul>
+</blockquote>
+
+<pre><code class="language-c"><span class="hljs-comment">/* 应用程序启动另一个程序（非阻塞，两者并发运行） */</span>
+<span class="hljs-type">int</span> slot = <span class="hljs-title function_">spawn</span>(<span class="hljs-string">"worker.ce"</span>);
+<span class="hljs-keyword">if</span> (slot &lt; <span class="hljs-number">0</span>) { <span class="hljs-title function_">puts</span>(<span class="hljs-string">"spawn failed"</span>); }</code></pre>
+
+<p><strong>阻塞/非阻塞由 shell <code>run</code> 命令控制</strong>（操作员决定）：</p>
+
+<pre><code>CatOS&gt; run hello.ce       # 前台阻塞：等待程序退出后返回 shell
+CatOS&gt; run hello.ce &amp;     # 后台非阻塞：立即返回 shell，程序并发运行</code></pre>
+
+<h4>用户控制台（NR 40-41）</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>40</td><td><code>uc_putc</code></td><td><code>void uc_putc(int ch, int attr)</code></td><td>向控制台窗口输出字符（带属性）</td></tr>
+  <tr><td>41</td><td><code>uc_clear</code></td><td><code>void uc_clear(void)</code></td><td>清空控制台窗口</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>窗口 API（NR 42-54）</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>42</td><td><code>win_create</code></td><td><code>int win_create(int x, int y, int w, int h, char *title)</code></td><td>创建窗口，返回 win_id</td></tr>
+  <tr><td>43</td><td><code>win_close</code></td><td><code>void win_close(int win_id)</code></td><td>关闭窗口</td></tr>
+  <tr><td>44</td><td><code>win_draw_text</code></td><td><code>void win_draw_text(int win_id, int x, int y, char *str, int fg, int bg)</code></td><td>绘制文本</td></tr>
+  <tr><td>45</td><td><code>win_draw_rect</code></td><td><code>void win_draw_rect(int win_id, int x, int y, int w, int h, int color)</code></td><td>绘制实心矩形</td></tr>
+  <tr><td>46</td><td><code>win_get_event</code></td><td><code>int win_get_event(int win_id, int *type, int *x, int *y)</code></td><td>阻塞获取事件</td></tr>
+  <tr><td>47</td><td><code>win_clear</code></td><td><code>void win_clear(int win_id, int color)</code></td><td>清空画布</td></tr>
+  <tr><td>48</td><td><code>win_set_title</code></td><td><code>void win_set_title(int win_id, char *title)</code></td><td>设置标题</td></tr>
+  <tr><td>49</td><td><code>win_draw_line</code></td><td><code>void win_draw_line(int win_id, int x1, int y1, int x2, int y2, int color)</code></td><td>画线</td></tr>
+  <tr><td>50</td><td><code>win_set_pixel</code></td><td><code>void win_set_pixel(int win_id, int x, int y, int color)</code></td><td>设置像素</td></tr>
+  <tr><td>51</td><td><code>win_peek_event</code></td><td><code>int win_peek_event(int win_id, int *type, int *x, int *y)</code></td><td>非阻塞获取事件</td></tr>
+  <tr><td>52</td><td><code>win_get_size</code></td><td><code>int win_get_size(int win_id, int *w, int *h)</code></td><td>获取客户区尺寸</td></tr>
+  <tr><td>53</td><td><code>win_set_closable</code></td><td><code>void win_set_closable(int win_id, int closable)</code></td><td>设置窗口是否允许叉号关闭</td></tr>
+  <tr><td>54</td><td><code>win_get_closable</code></td><td><code>int win_get_closable(int win_id)</code></td><td>查询窗口是否允许叉号关闭</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>类型转换</h4>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>NR</th>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>36</td><td><code>int_to_str</code></td><td><code>int int_to_str(int value, char* buf, int radix)</code></td><td>整数转字符串，返回字符串长度（不含 <code>\0</code>）</td></tr>
+  <tr><td>37</td><td><code>atoi</code></td><td><code>int atoi(char* str)</code></td><td>字符串转整数（十进制），返回解析结果</td></tr>
+</tbody>
+</table>
+</div>
+
+<blockquote>
+  <p><strong><code>int_to_str</code></strong> 参数说明：</p>
+  <ul>
+    <li><code>value</code>：要转换的整数（radix=10 时支持负数，其他进制按无符号处理）</li>
+    <li><code>buf</code>：输出缓冲区，需至少 33 字节（二进制 32 位 + <code>\0</code>）</li>
+    <li><code>radix</code>：进制（2/8/10/16 等，0 默认为 10）；hex 用小写 a-f</li>
+    <li>返回值：写入的字符数（不含 <code>\0</code>）</li>
+  </ul>
+  <p><strong><code>atoi</code></strong> 行为：跳过前导空白，处理可选的 <code>+</code>/<code>-</code> 符号，解析到第一个非数字字符停止。无有效数字时返回 0。</p>
+</blockquote>
+
+<h3>窗口 API（NR 40-54）</h3>
+
+<h4>概述</h4>
+
+<p>窗口 API 允许用户程序创建自己的 GUI 窗口，进行绘图和事件处理。窗口仅在图形桌面模式（<code>get_vmode() != 0</code>）下可用。每个用户进程最多创建 4 个窗口。</p>
+
+<h4>用户控制台 API</h4>
+
+<p><code>uc_putc</code> 和 <code>uc_clear</code> 操作的是"当前进程控制台窗口"——即程序在图形桌面下启动时自动分配的控制台窗口。</p>
+
+<ul>
+  <li><code>uc_putc(ch, attr)</code>：向控制台窗口输出字符。<code>attr</code> 低 4 位=前景色，高 4 位=背景色（如 <code>0x0F</code>=黑底亮白）</li>
+  <li><code>uc_clear()</code>：清空控制台并重置光标到左上角</li>
+</ul>
+
+<h4>窗口创建与销毁</h4>
+
+<ul>
+  <li><code>win_create(x, y, w, h, title)</code>：创建窗口
+    <ul>
+      <li><code>x, y</code>：窗口左上角屏幕坐标</li>
+      <li><code>w, h</code>：客户区尺寸（不含标题栏边框）</li>
+      <li><code>title</code>：标题字符串</li>
+      <li>返回 <code>win_id</code>（<code>&gt;=0</code>）或 <code>-1</code>（失败）</li>
+      <li>客户区最大 200x140 像素</li>
+    </ul>
+  </li>
+  <li><code>win_close(win_id)</code>：关闭并释放窗口资源</li>
+</ul>
+
+<h4>绘图 API</h4>
+
+<p>所有绘图坐标都是相对于客户区左上角 <code>(0,0)</code>，会自动裁剪到画布范围。</p>
+
+<ul>
+  <li><code>win_draw_text(win_id, x, y, str, fg, bg)</code>：绘制文本，8x16 像素字体，<code>fg</code>/<code>bg</code> 为颜色索引</li>
+  <li><code>win_draw_rect(win_id, x, y, w, h, color)</code>：绘制实心矩形</li>
+  <li><code>win_draw_line(win_id, x1, y1, x2, y2, color)</code>：Bresenham 画线</li>
+  <li><code>win_set_pixel(win_id, x, y, color)</code>：设置单个像素</li>
+  <li><code>win_clear(win_id, color)</code>：清空整个画布为指定颜色</li>
+</ul>
+
+<h4>事件处理</h4>
+
+<ul>
+  <li><code>win_get_event(win_id, &amp;type, &amp;x, &amp;y)</code>：<strong>阻塞</strong>等待事件。<code>type</code>=事件类型，<code>x</code>/<code>y</code>=坐标或按键值</li>
+  <li><code>win_peek_event(win_id, &amp;type, &amp;x, &amp;y)</code>：<strong>非阻塞</strong>，无事件时返回 0</li>
+</ul>
+
+<p>事件类型常量：</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>常量</th>
+    <th>值</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td><code>EV_NONE</code></td><td>0</td><td>无事件</td></tr>
+  <tr><td><code>EV_LDOWN</code></td><td>1</td><td>左键按下</td></tr>
+  <tr><td><code>EV_LUP</code></td><td>2</td><td>左键释放</td></tr>
+  <tr><td><code>EV_MOUSE</code></td><td>3</td><td>鼠标移动</td></tr>
+  <tr><td><code>EV_KEY</code></td><td>4</td><td>键盘按键</td></tr>
+  <tr><td><code>EV_CLOSE</code></td><td>5</td><td>关闭请求</td></tr>
+</tbody>
+</table>
+</div>
+
+<ul>
+  <li><strong>鼠标事件</strong>：<code>x, y</code> = 客户区相对坐标</li>
+  <li><strong>键盘事件</strong>：<code>x</code> = 按键值（与 <code>getch</code> 相同的 16 位键值），<code>y</code> = 0</li>
+  <li><strong>关闭事件</strong>：用户点击窗口关闭按钮时触发，程序应调用 <code>win_close()</code> 响应</li>
+</ul>
+
+<h4>窗口信息</h4>
+
+<ul>
+  <li><code>win_set_title(win_id, title)</code>：动态修改窗口标题</li>
+  <li><code>win_get_size(win_id, &amp;w, &amp;h)</code>：获取客户区宽高</li>
+</ul>
+
+<h4>窗口关闭控制（NR 53-54）</h4>
+
+<ul>
+  <li><code>win_set_closable(win_id, closable)</code>：设置用户窗口是否允许通过点击标题栏叉号（×）关闭
+    <ul>
+      <li><code>win_id</code>：窗口 ID（<code>win_create</code> 返回值）</li>
+      <li><code>closable</code>：<code>0</code>=禁止叉号关闭，<code>1</code>=允许叉号关闭（默认）</li>
+      <li>返回值：无</li>
+    </ul>
+  </li>
+  <li><code>win_get_closable(win_id)</code>：查询用户窗口是否允许通过叉号关闭
+    <ul>
+      <li><code>win_id</code>：窗口 ID</li>
+      <li>返回值：<code>1</code>=允许，<code>0</code>=禁止（或窗口不存在）</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p><strong>说明</strong>：</p>
+  <ul>
+    <li>默认所有窗口允许叉号关闭（点击叉号推送 <code>EV_CLOSE</code> 事件）</li>
+    <li><code>closable=0</code> 后，点击叉号无效，窗口无法通过叉号关闭</li>
+    <li>应用仍可通过 <code>win_close()</code> 主动关闭</li>
+    <li>用途：强制完成操作后才能关闭窗口</li>
+  </ul>
+</blockquote>
+
+<h4>颜色常量</h4>
+
+<p>VGA 256 色调色板，常用颜色：</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>值</th>
+    <th>颜色</th>
+    <th>值</th>
+    <th>颜色</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td><code>0x00</code></td><td>黑</td><td><code>0x08</code></td><td>暗灰</td></tr>
+  <tr><td><code>0x01</code></td><td>蓝</td><td><code>0x09</code></td><td>亮蓝</td></tr>
+  <tr><td><code>0x02</code></td><td>绿</td><td><code>0x0A</code></td><td>亮绿</td></tr>
+  <tr><td><code>0x03</code></td><td>青</td><td><code>0x0B</code></td><td>亮青</td></tr>
+  <tr><td><code>0x04</code></td><td>红</td><td><code>0x0C</code></td><td>亮红</td></tr>
+  <tr><td><code>0x05</code></td><td>品红</td><td><code>0x0D</code></td><td>亮品红</td></tr>
+  <tr><td><code>0x06</code></td><td>棕</td><td><code>0x0E</code></td><td>黄</td></tr>
+  <tr><td><code>0x07</code></td><td>浅灰</td><td><code>0x0F</code></td><td>白</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>示例程序</h4>
+
+<pre><code class="language-c"><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+{
+    <span class="hljs-type">int</span> win = <span class="hljs-title function_">win_create</span>(<span class="hljs-number">30</span>, <span class="hljs-number">30</span>, <span class="hljs-number">160</span>, <span class="hljs-number">100</span>, <span class="hljs-string">"My App"</span>);
+    <span class="hljs-keyword">if</span> (win &lt; <span class="hljs-number">0</span>) <span class="hljs-title function_">exit</span>(<span class="hljs-number">1</span>);
+
+    <span class="hljs-comment">/* 背景填充 */</span>
+    <span class="hljs-title function_">win_clear</span>(win, <span class="hljs-number">0x01</span>);  <span class="hljs-comment">/* 蓝色背景 */</span>
+
+    <span class="hljs-comment">/* 绘制内容 */</span>
+    <span class="hljs-title function_">win_draw_rect</span>(win, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">50</span>, <span class="hljs-number">30</span>, <span class="hljs-number">0x0E</span>);  <span class="hljs-comment">/* 黄色矩形 */</span>
+    <span class="hljs-title function_">win_draw_text</span>(win, <span class="hljs-number">10</span>, <span class="hljs-number">50</span>, <span class="hljs-string">"Hello!"</span>, <span class="hljs-number">0x0F</span>, <span class="hljs-number">0x01</span>);  <span class="hljs-comment">/* 白字蓝底 */</span>
+    <span class="hljs-title function_">win_draw_line</span>(win, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">159</span>, <span class="hljs-number">99</span>, <span class="hljs-number">0x0A</span>);  <span class="hljs-comment">/* 绿色对角线 */</span>
+
+    <span class="hljs-comment">/* 事件循环 */</span>
+    <span class="hljs-type">int</span> type, x, y;
+    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) {
+        type = <span class="hljs-title function_">win_get_event</span>(win, &amp;type, &amp;x, &amp;y);
+        <span class="hljs-keyword">if</span> (type == EV_CLOSE) <span class="hljs-keyword">break</span>;  <span class="hljs-comment">/* 关闭按钮 */</span>
+        <span class="hljs-keyword">if</span> (type == EV_KEY) {
+            <span class="hljs-keyword">if</span> (x == <span class="hljs-number">0x101</span>) <span class="hljs-keyword">break</span>;  <span class="hljs-comment">/* ESC */</span>
+        }
+        <span class="hljs-keyword">if</span> (type == EV_LDOWN) {
+            <span class="hljs-comment">/* 在点击位置画点 */</span>
+            <span class="hljs-title function_">win_set_pixel</span>(win, x, y, <span class="hljs-number">0x0E</span>);
+        }
+    }
+
+    <span class="hljs-title function_">win_close</span>(win);
+    <span class="hljs-title function_">exit</span>(<span class="hljs-number">0</span>);
+}</code></pre>
+
+<h4>字符串工具（crt0 内置，无需系统调用）</h4>
+
+<p>以下函数由 crt0.asm 提供，纯用户态实现，不经过系统调用：</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>函数</th>
+    <th>原型</th>
+    <th>说明</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td><code>strlen</code></td><td><code>int strlen(char* str)</code></td><td>返回字符串长度（不含 <code>\0</code>）</td></tr>
+  <tr><td><code>strcmp</code></td><td><code>int strcmp(char* a, char* b)</code></td><td>比较两个字符串，返回 0=相等 / &lt;0 / &gt;0</td></tr>
+  <tr><td><code>strcpy</code></td><td><code>void strcpy(char* dst, char* src)</code></td><td>复制字符串（含 <code>\0</code>）</td></tr>
+  <tr><td><code>memcpy</code></td><td><code>void memcpy(char* dst, char* src, int n)</code></td><td>复制 n 字节内存</td></tr>
+  <tr><td><code>memset</code></td><td><code>void memset(char* dst, int val, int n)</code></td><td>用 val 填充 n 字节</td></tr>
+</tbody>
+</table>
+</div>
+
+<blockquote>
+  <p><strong>属性字节格式</strong>（<code>set_color</code> / <code>putc_color</code> 的 <code>color</code>）：高 4 位背景，低 4 位前景。<br>
+  例：<code>0x0F</code>=黑底亮白，<code>0x1E</code>=蓝底黄字，<code>0x4E</code>=红底黄字，<code>0x0A</code>=黑底亮绿。<br>
+  可用 <code>MAKE_COLOR(bg, fg)</code> 宏（见 <code>const.h</code>）组合。</p>
+</blockquote>
+
+<h3>扩展键与 <code>getch</code> 返回值</h3>
+
+<p><code>getch</code> 返回 <strong>16 位键值</strong>，不同类型的按键返回值不同：</p>
+
+<ul>
+  <li><strong>普通可见字符</strong>（0x20~0x7E）：返回 ASCII 码本身，如 <code>'A'</code>=0x41、<code>'1'</code>=0x31</li>
+  <li><strong>扩展键</strong>（Enter/ESC/Tab/Backspace/F1~F12/方向键等）：返回 <code>FLAG_EXT(0x100) + code</code></li>
+  <li><strong>修饰键</strong>（Shift/Ctrl/Alt/CapsLock 等）：在内部自动跳过，不会返回</li>
+</ul>
+
+<p>判断扩展键：<code>(key & 0x100)</code> 非 0 即为扩展键。常见扩展键值（定义在 <code>keyboard.h</code>）：</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>键</th>
+    <th>返回值</th>
+    <th>键</th>
+    <th>返回值</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>ESC</td><td><code>0x101</code></td><td>F1~F12</td><td><code>0x111~0x11C</code></td></tr>
+  <tr><td>Tab</td><td><code>0x102</code></td><td>Home / End</td><td><code>0x121 / 0x122</code></td></tr>
+  <tr><td>Enter</td><td><code>0x103</code></td><td>PageUp / PageDown</td><td><code>0x123 / 0x124</code></td></tr>
+  <tr><td>Backspace</td><td><code>0x104</code></td><td>Up / Down</td><td><code>0x125 / 0x126</code></td></tr>
+  <tr><td>Insert</td><td><code>0x11F</code></td><td>Left / Right</td><td><code>0x127 / 0x128</code></td></tr>
+  <tr><td>Delete</td><td><code>0x120</code></td><td>Pause/Break</td><td><code>0x11E</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<blockquote>
+  <p><strong>注意</strong>：<code>getc</code>（NR 4）只返回低 8 位（<code>key & 0xFF</code>），无法获取扩展键码。需要处理扩展键时请使用 <code>getch</code>。<br>
+  图形模式下，<code>putc</code> 对 &lt;32 或 &gt;127 的字符输出 <code>?</code>，因此扩展键的低位字节不会被当作可见字符打印。</p>
+</blockquote>
+
+<h3><code>get_key_flags</code> 修饰键状态</h3>
+
+<p>返回 16 位状态掩码，可同时检测多个修饰键：</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>位</th>
+    <th>掩码</th>
+    <th>含义</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>0</td><td><code>0x001</code></td><td>左 Shift</td></tr>
+  <tr><td>1</td><td><code>0x002</code></td><td>右 Shift</td></tr>
+  <tr><td>2</td><td><code>0x004</code></td><td>左 Ctrl</td></tr>
+  <tr><td>3</td><td><code>0x008</code></td><td>右 Ctrl</td></tr>
+  <tr><td>4</td><td><code>0x010</code></td><td>左 Alt</td></tr>
+  <tr><td>5</td><td><code>0x020</code></td><td>右 Alt</td></tr>
+  <tr><td>6</td><td><code>0x040</code></td><td>Caps Lock</td></tr>
+  <tr><td>7</td><td><code>0x080</code></td><td>Num Lock</td></tr>
+  <tr><td>8</td><td><code>0x100</code></td><td>Scroll Lock</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>使用方式</h3>
+
+<p>SDK 在 <code>crt0.asm</code> 中提供了汇编包装函数，C 代码中只需 <code>extern</code> 声明即可调用：</p>
+
+<pre><code class="language-c"><span class="hljs-comment">/* === 控制台输出 === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">write</span><span class="hljs-params">(<span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> len)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">puts</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">set_color</span><span class="hljs-params">(<span class="hljs-type">int</span> color)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc_color</span><span class="hljs-params">(<span class="hljs-type">int</span> ch, <span class="hljs-type">int</span> color)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_int</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_uint</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_hex</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n, <span class="hljs-type">int</span> upper)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_bin</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n)</span>;
+
+<span class="hljs-comment">/* === 键盘输入 === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">getc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">getch</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">kbhit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_key_flags</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+
+<span class="hljs-comment">/* === 屏幕控制 === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">clrscr</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">gotoxy</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_xy</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_cols</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_rows</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_vmode</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">scroll</span><span class="hljs-params">(<span class="hljs-type">int</span> lines)</span>;
+
+<span class="hljs-comment">/* === 文件 IO === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">set_io_size</span><span class="hljs-params">(<span class="hljs-type">int</span> size)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_read</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> bufsize)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_write</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> size)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_delete</span><span class="hljs-params">(<span class="hljs-type">char</span>* name)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_exists</span><span class="hljs-params">(<span class="hljs-type">char</span>* name)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_size</span><span class="hljs-params">(<span class="hljs-type">char</span>* name)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_list</span><span class="hljs-params">(<span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> bufsize)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_append</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> size)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_stat</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">int</span>* info)</span>;
+
+<span class="hljs-comment">/* === 系统信息 === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_ticks</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_pid</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_name</span><span class="hljs-params">(<span class="hljs-type">char</span>* buf)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">rand</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">srand</span><span class="hljs-params">(<span class="hljs-type">int</span> seed)</span>;
+
+<span class="hljs-comment">/* === 系统控制 === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">exit</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">msleep</span><span class="hljs-params">(<span class="hljs-type">int</span> ms)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">reboot</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+
+<span class="hljs-comment">/* === 进程管理 (Phase 3) === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">spawn</span><span class="hljs-params">(<span class="hljs-type">char</span>* name)</span>;  <span class="hljs-comment">/* 总是非阻塞, 返回槽位号 */</span>
+
+<span class="hljs-comment">/* === 用户控制台 === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">uc_putc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch, <span class="hljs-type">int</span> attr)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">uc_clear</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+
+<span class="hljs-comment">/* === 窗口 API === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">win_create</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">int</span> w, <span class="hljs-type">int</span> h, <span class="hljs-type">char</span> *title)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">win_close</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">win_draw_text</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">char</span> *str, <span class="hljs-type">int</span> fg, <span class="hljs-type">int</span> bg)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">win_draw_rect</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">int</span> w, <span class="hljs-type">int</span> h, <span class="hljs-type">int</span> color)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">win_get_event</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">int</span> *type, <span class="hljs-type">int</span> *x, <span class="hljs-type">int</span> *y)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">win_clear</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">int</span> color)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">win_set_title</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">char</span> *title)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">win_draw_line</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">int</span> x1, <span class="hljs-type">int</span> y1, <span class="hljs-type">int</span> x2, <span class="hljs-type">int</span> y2, <span class="hljs-type">int</span> color)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">win_set_pixel</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y, <span class="hljs-type">int</span> color)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">win_peek_event</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">int</span> *type, <span class="hljs-type">int</span> *x, <span class="hljs-type">int</span> *y)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">win_get_size</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">int</span> *w, <span class="hljs-type">int</span> *h)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">win_set_closable</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id, <span class="hljs-type">int</span> closable)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">win_get_closable</span><span class="hljs-params">(<span class="hljs-type">int</span> win_id)</span>;
+
+<span class="hljs-comment">/* === 窗口事件常量 === */</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span></span> EV_NONE    <span class="hljs-number">0</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span></span> EV_LDOWN   <span class="hljs-number">1</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span></span> EV_LUP     <span class="hljs-number">2</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span></span> EV_MOUSE   <span class="hljs-number">3</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span></span> EV_KEY     <span class="hljs-number">4</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span></span> EV_CLOSE   <span class="hljs-number">5</span>
+
+<span class="hljs-comment">/* === 类型转换 === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">int_to_str</span><span class="hljs-params">(<span class="hljs-type">int</span> value, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> radix)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">atoi</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+
+<span class="hljs-comment">/* === 字符串工具 (crt0 内置) === */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">strlen</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">strcmp</span><span class="hljs-params">(<span class="hljs-type">char</span>* a, <span class="hljs-type">char</span>* b)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">strcpy</span><span class="hljs-params">(<span class="hljs-type">char</span>* dst, <span class="hljs-type">char</span>* src)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">memcpy</span><span class="hljs-params">(<span class="hljs-type">char</span>* dst, <span class="hljs-type">char</span>* src, <span class="hljs-type">int</span> n)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">memset</span><span class="hljs-params">(<span class="hljs-type">char</span>* dst, <span class="hljs-type">int</span> val, <span class="hljs-type">int</span> n)</span>;
+</code></pre>
+
+<h3>字符串指针注意事项</h3>
+
+<p><code>puts</code> 和 <code>write</code> 的参数是<strong>段内偏移</strong>（相对 LDT base）。由于链接地址为 0，C 代码中的字符串指针就是段内偏移，无需手动转换。内核会自动将其转换为线性地址（<code>USER_PROC_BASE + 偏移</code>）来读取。</p>
+
+<h3>图形模式支持</h3>
+
+<p>系统调用输出自动适配文本模式和图形模式（VGA Mode 13h）：</p>
+<ul>
+  <li>文本模式：写入 VGA 文本显存（0xB8000）</li>
+  <li>图形模式：使用位图字体绘制，支持滚屏和光标</li>
+</ul>
+
+<hr>
+
+<!-- ===== 6. 编写用户程序 ===== -->
+<h2 id="sec6">6. 编写用户程序</h2>
+
+<h3>基本结构</h3>
+
+<p>一个 CatOS 用户程序需要：</p>
+
+<ol>
+  <li><strong><code>extern</code> 声明</strong> SDK 提供的函数</li>
+  <li><strong><code>main</code> 函数</strong> 作为程序入口（由 crt0 调用）</li>
+  <li><strong>调用 <code>exit</code></strong> 终止程序（虽然 crt0 会在 main 返回后自动调用 exit，但建议显式调用）</li>
+</ol>
+
+<h3>模板</h3>
+
+<pre><code class="language-c"><span class="hljs-comment">/* 声明系统调用 */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">puts</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">exit</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_ticks</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">getc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+
+<span class="hljs-comment">/* 全局变量（放入 .data 段） */</span>
+<span class="hljs-type">int</span> counter = <span class="hljs-number">0</span>;
+
+<span class="hljs-comment">/* BSS 变量（加载时清零） */</span>
+<span class="hljs-type">char</span> buffer[<span class="hljs-number">256</span>];
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+{
+    <span class="hljs-type">static</span> <span class="hljs-type">char</span> msg[] = <span class="hljs-string">"My first CatOS program!\n"</span>;
+    <span class="hljs-title function_">puts</span>(msg);
+
+    <span class="hljs-comment">/* 显示数字 0-9 */</span>
+    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) {
+        <span class="hljs-title function_">putc</span>(<span class="hljs-string">'0'</span> + i);
+    }
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-comment">/* 获取系统滴答数 */</span>
+    <span class="hljs-type">int</span> t = <span class="hljs-title function_">get_ticks</span>();
+    <span class="hljs-comment">/* 注意：没有 printf，需要自己实现数字转字符串 */</span>
+
+    <span class="hljs-title function_">exit</span>(<span class="hljs-number">0</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>; <span class="hljs-comment">/* 不会到达 */</span>
+}</code></pre>
+
+<h3>字符串使用规则</h3>
+
+<p>建议使用全局数组定义字符串，确保稳定可靠：</p>
+
+<pre><code class="language-c"><span class="hljs-comment">/* 推荐：使用全局数组 */</span>
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> msg[] = <span class="hljs-string">"hello world\n"</span>;
+<span class="hljs-type">void</span> <span class="hljs-title function_">good_example</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+    <span class="hljs-title function_">puts</span>(msg);
+}</code></pre>
+
+<h3>实现数字输出</h3>
+
+<p>CatOS SDK 内置了 <code>put_int</code> / <code>put_uint</code> / <code>put_hex</code> / <code>put_bin</code> 系统调用，可直接使用：</p>
+
+<pre><code class="language-c"><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_int</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_hex</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n, <span class="hljs-type">int</span> upper)</span>;
+
+<span class="hljs-title function_">put_int</span>(<span class="hljs-number">42</span>);          <span class="hljs-comment">/* 输出: 42 */</span>
+<span class="hljs-title function_">put_int</span>(-<span class="hljs-number">7</span>);          <span class="hljs-comment">/* 输出: -7 */</span>
+<span class="hljs-title function_">put_hex</span>(<span class="hljs-number">0xBEEF</span>, <span class="hljs-number">1</span>);   <span class="hljs-comment">/* 输出: BEEF */</span></code></pre>
+
+<p>如需更复杂的格式化输出（类似 <code>printf</code>），可基于上述函数自行封装。</p>
+
+<h3>键盘输入</h3>
+
+<ul>
+  <li><code>getc</code>：非阻塞，无按键时返回 -1，<strong>只返回低 8 位 ASCII</strong></li>
+  <li><code>getch</code>：阻塞，等待按键后返回 <strong>16 位键值</strong>（含扩展键标志，见下文）</li>
+  <li><code>kbhit</code>：检测是否有按键（不消费数据），返回 1=有 / 0=无</li>
+  <li><code>get_key_flags</code>：获取修饰键（Shift/Ctrl/Alt/Lock）状态</li>
+</ul>
+
+<pre><code class="language-c"><span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">getc</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;         <span class="hljs-comment">/* 非阻塞，无按键返回 -1 */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">getch</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;        <span class="hljs-comment">/* 阻塞，返回 16 位键值 */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">kbhit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;        <span class="hljs-comment">/* 返回 1=有按键, 0=无 (不消费) */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_key_flags</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;<span class="hljs-comment">/* 修饰键状态掩码 */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">exit</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span>;
+
+<span class="hljs-comment">/* 扩展键值常量 (见 keyboard.h, 此处直接用数值避免依赖头文件) */</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> KEY_ESC      0x101</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> KEY_ENTER    0x103</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> KEY_BACKSPACE 0x104</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> KEY_UP       0x125</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> KEY_DOWN     0x126</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> KEY_LEFT     0x127</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> KEY_RIGHT    0x128</span>
+<span class="hljs-meta">#<span class="hljs-keyword">define</span> IS_EXT(k)    ((k) &amp; 0x100)  <span class="hljs-comment">/* 判断是否为扩展键 */</span></span>
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+    <span class="hljs-comment">/* 方式 1: 非阻塞轮询 (只处理 ASCII) */</span>
+    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) {
+        <span class="hljs-type">int</span> ch = <span class="hljs-title function_">getc</span>();
+        <span class="hljs-keyword">if</span> (ch &gt;= <span class="hljs-number">0</span>) {
+            <span class="hljs-keyword">if</span> (ch == <span class="hljs-number">27</span>) { <span class="hljs-title function_">exit</span>(<span class="hljs-number">0</span>); }  <span class="hljs-comment">/* ESC 的 ASCII 码 */</span>
+            <span class="hljs-title function_">putc</span>(ch);
+        }
+    }
+}
+
+<span class="hljs-comment">/* 方式 2: 阻塞等待 + 扩展键处理 (适合交互式程序/游戏) */</span>
+<span class="hljs-type">int</span> <span class="hljs-title function_">interactive_loop</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) {
+        <span class="hljs-type">int</span> key = <span class="hljs-title function_">getch</span>();           <span class="hljs-comment">/* 阻塞直到有按键 */</span>
+
+        <span class="hljs-keyword">if</span> (<span class="hljs-title function_">IS_EXT</span>(key)) {
+            <span class="hljs-comment">/* 扩展键: 方向键/功能键等 */</span>
+            <span class="hljs-keyword">switch</span> (key) {
+            <span class="hljs-keyword">case</span> KEY_ESC:       <span class="hljs-title function_">exit</span>(<span class="hljs-number">0</span>);          <span class="hljs-comment">/* ESC 退出 */</span>
+            <span class="hljs-keyword">case</span> KEY_UP:        <span class="hljs-comment">/* 处理上移 */</span>     <span class="hljs-keyword">break</span>;
+            <span class="hljs-keyword">case</span> KEY_DOWN:      <span class="hljs-comment">/* 处理下移 */</span>     <span class="hljs-keyword">break</span>;
+            <span class="hljs-keyword">case</span> KEY_LEFT:      <span class="hljs-comment">/* 处理左移 */</span>     <span class="hljs-keyword">break</span>;
+            <span class="hljs-keyword">case</span> KEY_RIGHT:     <span class="hljs-comment">/* 处理右移 */</span>     <span class="hljs-keyword">break</span>;
+            <span class="hljs-keyword">case</span> KEY_ENTER:     <span class="hljs-comment">/* 处理确认 */</span>     <span class="hljs-keyword">break</span>;
+            <span class="hljs-keyword">case</span> KEY_BACKSPACE: <span class="hljs-comment">/* 处理退格 */</span>     <span class="hljs-keyword">break</span>;
+            }
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-comment">/* 普通可见字符 (0x20~0x7E) */</span>
+            <span class="hljs-keyword">if</span> (key == <span class="hljs-string">'q'</span>) <span class="hljs-keyword">break</span>;
+            <span class="hljs-title function_">putc</span>(key);
+        }
+    }
+}
+
+<span class="hljs-comment">/* 方式 3: 游戏循环 (kbhit 非阻塞 + getch 消费) */</span>
+<span class="hljs-type">int</span> <span class="hljs-title function_">game_loop</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) {
+        <span class="hljs-keyword">if</span> (<span class="hljs-title function_">kbhit</span>()) {
+            <span class="hljs-type">int</span> key = <span class="hljs-title function_">getch</span>();
+            <span class="hljs-keyword">if</span> (key == <span class="hljs-string">'q'</span>) <span class="hljs-keyword">break</span>;
+        }
+        <span class="hljs-comment">/* 更新游戏状态... */</span>
+    }
+}
+
+<span class="hljs-comment">/* 检测修饰键组合 (如 Ctrl+C) */</span>
+<span class="hljs-type">void</span> <span class="hljs-title function_">check_modifiers</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> {
+    <span class="hljs-type">int</span> flags = <span class="hljs-title function_">get_key_flags</span>();
+    <span class="hljs-keyword">if</span> (flags &amp; <span class="hljs-number">0x004</span>) {  <span class="hljs-comment">/* 左 Ctrl 按下 */</span>
+        <span class="hljs-comment">/* ... */</span>
+    }
+}</code></pre>
+
+<blockquote>
+  <p><strong>重要</strong>：<code>getch</code> 返回的扩展键值高位带 <code>0x100</code> 标志，<strong>不要</strong>用 <code>&amp; 0xFF</code> 截断，否则会丢失扩展键信息导致方向键等功能键无法识别。</p>
+</blockquote>
+
+<h3>扩展 API 示例</h3>
+
+<p>下面演示清屏、定位、彩色输出、随机数与进程信息等扩展系统调用：</p>
+
+<pre><code class="language-c"><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">clrscr</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">gotoxy</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">set_color</span><span class="hljs-params">(<span class="hljs-type">int</span> color)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc_color</span><span class="hljs-params">(<span class="hljs-type">int</span> ch, <span class="hljs-type">int</span> color)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">puts</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_cols</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_pid</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_name</span><span class="hljs-params">(<span class="hljs-type">char</span>* buf)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">rand</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">srand</span><span class="hljs-params">(<span class="hljs-type">int</span> seed)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_ticks</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">exit</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span>;
+
+<span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_int</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span>
+{
+    <span class="hljs-type">char</span> buf[<span class="hljs-number">16</span>];
+    <span class="hljs-type">int</span> i = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">if</span> (n == <span class="hljs-number">0</span>) { <span class="hljs-title function_">putc</span>(<span class="hljs-string">'0'</span>); <span class="hljs-keyword">return</span>; }
+    <span class="hljs-keyword">if</span> (n &lt; <span class="hljs-number">0</span>) { <span class="hljs-title function_">putc</span>(<span class="hljs-string">'-'</span>); n = -n; }
+    <span class="hljs-keyword">while</span> (n &gt; <span class="hljs-number">0</span>) { buf[i++] = <span class="hljs-string">'0'</span> + (n % <span class="hljs-number">10</span>); n /= <span class="hljs-number">10</span>; }
+    <span class="hljs-keyword">while</span> (i &gt; <span class="hljs-number">0</span>) <span class="hljs-title function_">putc</span>(buf[--i]);
+}
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+{
+    <span class="hljs-type">char</span> name[<span class="hljs-number">16</span>];
+    <span class="hljs-type">int</span> cols;
+
+    <span class="hljs-title function_">clrscr</span>();
+    cols = <span class="hljs-title function_">get_cols</span>();
+
+    <span class="hljs-comment">/* 顶部红底黄字标题 */</span>
+    <span class="hljs-title function_">gotoxy</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>);
+    <span class="hljs-title function_">set_color</span>(<span class="hljs-number">0x4E</span>);             <span class="hljs-comment">/* 红底黄字 */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"=== CatOS Extended API Demo ==="</span>);
+    <span class="hljs-title function_">set_color</span>(<span class="hljs-number">0x0F</span>);             <span class="hljs-comment">/* 恢复默认 */</span>
+
+    <span class="hljs-comment">/* 第二行显示进程信息 */</span>
+    <span class="hljs-title function_">gotoxy</span>(<span class="hljs-number">0</span>, <span class="hljs-number">2</span>);
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"PID = "</span>); <span class="hljs-title function_">put_int</span>(<span class="hljs-title function_">get_pid</span>());
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"  Name = "</span>);
+    <span class="hljs-title function_">get_name</span>(name);
+    <span class="hljs-title function_">puts</span>(name);
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"  Cols = "</span>); <span class="hljs-title function_">put_int</span>(cols);
+
+    <span class="hljs-comment">/* 用 ticks 做种，输出 5 个随机数 */</span>
+    <span class="hljs-title function_">srand</span>(<span class="hljs-title function_">get_ticks</span>());
+    <span class="hljs-title function_">gotoxy</span>(<span class="hljs-number">0</span>, <span class="hljs-number">4</span>);
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Random: "</span>);
+    {
+        <span class="hljs-type">int</span> i;
+        <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; i++) {
+            <span class="hljs-title function_">put_int</span>(<span class="hljs-title function_">rand</span>());
+            <span class="hljs-title function_">putc</span>(<span class="hljs-string">' '</span>);
+        }
+    }
+
+    <span class="hljs-comment">/* 不同颜色单字 */</span>
+    <span class="hljs-title function_">gotoxy</span>(<span class="hljs-number">0</span>, <span class="hljs-number">6</span>);
+    <span class="hljs-title function_">putc_color</span>(<span class="hljs-string">'C'</span>, <span class="hljs-number">0x0C</span>);  <span class="hljs-comment">/* 亮红 */</span>
+    <span class="hljs-title function_">putc_color</span>(<span class="hljs-string">'a'</span>, <span class="hljs-number">0x0A</span>);  <span class="hljs-comment">/* 亮绿 */</span>
+    <span class="hljs-title function_">putc_color</span>(<span class="hljs-string">'t'</span>, <span class="hljs-number">0x0B</span>);  <span class="hljs-comment">/* 亮青 */</span>
+    <span class="hljs-title function_">putc_color</span>(<span class="hljs-string">'O'</span>, <span class="hljs-number">0x0E</span>);  <span class="hljs-comment">/* 黄 */</span>
+    <span class="hljs-title function_">putc_color</span>(<span class="hljs-string">'S'</span>, <span class="hljs-number">0x0D</span>);  <span class="hljs-comment">/* 亮洋红 */</span>
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-title function_">exit</span>(<span class="hljs-number">0</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}</code></pre>
+
+<h3>文件 IO</h3>
+
+<p>CatOS 提供 FAT12/16/32 文件系统访问接口。由于系统调用接口只有两个参数寄存器（ebx/ecx），三参数函数（<code>file_read</code>/<code>file_write</code>/<code>file_list</code>/<code>file_append</code>/<code>int_to_str</code>）会先调用 <code>set_io_size</code> 传递第三参数，再调用实际系统调用——这些已由 crt0 自动处理，C 代码中直接调用即可。</p>
+
+<pre><code class="language-c"><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">set_io_size</span><span class="hljs-params">(<span class="hljs-type">int</span> size)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_read</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> bufsize)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_write</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> size)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_append</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> size)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_delete</span><span class="hljs-params">(<span class="hljs-type">char</span>* name)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_exists</span><span class="hljs-params">(<span class="hljs-type">char</span>* name)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_size</span><span class="hljs-params">(<span class="hljs-type">char</span>* name)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_list</span><span class="hljs-params">(<span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> bufsize)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">file_stat</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">int</span>* info)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">puts</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_int</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">exit</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span>;
+
+<span class="hljs-comment">/* 缓冲区: 文件最大读取量受用户程序内存限制 (128KB 段空间) */</span>
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> buf[<span class="hljs-number">4096</span>];
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+{
+    <span class="hljs-comment">/* --- 写文件 --- */</span>
+    <span class="hljs-type">static</span> <span class="hljs-type">char</span> content[] = <span class="hljs-string">"Hello from CatOS file IO!\nLine 2\n"</span>;
+    <span class="hljs-type">int</span> written = <span class="hljs-title function_">file_write</span>(<span class="hljs-string">"test.txt"</span>, content, <span class="hljs-number">25</span>);
+    <span class="hljs-keyword">if</span> (written &lt; <span class="hljs-number">0</span>) {
+        <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Write failed\n"</span>);
+        <span class="hljs-title function_">exit</span>(<span class="hljs-number">1</span>);
+    }
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Wrote "</span>); <span class="hljs-title function_">put_int</span>(written); <span class="hljs-title function_">puts</span>(<span class="hljs-string">" bytes\n"</span>);
+
+    <span class="hljs-comment">/* --- 追加数据到文件末尾 --- */</span>
+    <span class="hljs-type">static</span> <span class="hljs-type">char</span> more[] = <span class="hljs-string">"Line 3 (appended)\n"</span>;
+    <span class="hljs-keyword">if</span> (<span class="hljs-title function_">file_append</span>(<span class="hljs-string">"test.txt"</span>, more, <span class="hljs-number">18</span>) == <span class="hljs-number">0</span>) {
+        <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Appended successfully\n"</span>);
+    }
+
+    <span class="hljs-comment">/* --- file_stat: 获取文件详细信息 --- */</span>
+    <span class="hljs-type">int</span> info[<span class="hljs-number">2</span>];
+    <span class="hljs-keyword">if</span> (<span class="hljs-title function_">file_stat</span>(<span class="hljs-string">"test.txt"</span>, info) == <span class="hljs-number">0</span>) {
+        <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Size="</span>);     <span class="hljs-title function_">put_int</span>(info[<span class="hljs-number">0</span>]); <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+        <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Attr=0x"</span>);   <span class="hljs-title function_">put_int</span>(info[<span class="hljs-number">1</span>]); <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+    }
+
+    <span class="hljs-comment">/* --- 读文件 --- */</span>
+    <span class="hljs-type">int</span> n = <span class="hljs-title function_">file_read</span>(<span class="hljs-string">"test.txt"</span>, buf, <span class="hljs-keyword">sizeof</span>(buf));
+    <span class="hljs-keyword">if</span> (n &gt; <span class="hljs-number">0</span>) {
+        <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Read "</span>); <span class="hljs-title function_">put_int</span>(n); <span class="hljs-title function_">puts</span>(<span class="hljs-string">" bytes:\n"</span>);
+        buf[n] = <span class="hljs-string">'\0'</span>;
+        <span class="hljs-title function_">puts</span>(buf);
+    }
+
+    <span class="hljs-comment">/* --- 列出根目录文件 --- */</span>
+    <span class="hljs-type">static</span> <span class="hljs-type">char</span> list_buf[<span class="hljs-number">2048</span>];
+    <span class="hljs-type">int</span> count = <span class="hljs-title function_">file_list</span>(list_buf, <span class="hljs-keyword">sizeof</span>(list_buf));
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Files ("</span>); <span class="hljs-title function_">put_int</span>(count); <span class="hljs-title function_">puts</span>(<span class="hljs-string">"):\n"</span>);
+    <span class="hljs-title function_">puts</span>(list_buf);
+
+    <span class="hljs-comment">/* --- 删除文件 --- */</span>
+    <span class="hljs-keyword">if</span> (<span class="hljs-title function_">file_delete</span>(<span class="hljs-string">"test.txt"</span>) == <span class="hljs-number">0</span>) {
+        <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Deleted test.txt\n"</span>);
+    }
+
+    <span class="hljs-title function_">exit</span>(<span class="hljs-number">0</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}</code></pre>
+
+<blockquote>
+  <p><strong>注意</strong>：</p>
+  <ul>
+    <li>文件名为 FAT 8.3 短文件名格式（如 <code>"test.txt"</code>、<code>"hello.ce"</code>），最长 8 字符主名 + 3 字符扩展名。</li>
+    <li><code>file_write</code> 会创建或覆盖文件；<code>file_append</code> 在文件末尾追加（不覆盖原内容），文件不存在时自动创建。</li>
+    <li><code>file_read</code> 的 <code>bufsize</code> 决定最多读取字节数。</li>
+    <li>读写缓冲区在用户程序段内，受 128KB 段大小限制，单次读写不宜过大。</li>
+    <li><code>file_list</code> 返回的文件名以 <code>\n</code> 分隔，可直接 <code>puts</code> 输出。</li>
+    <li><code>file_stat</code> 的 info 是 <code>int[2]</code>：<code>info[0]</code>=大小, <code>info[1]</code>=属性。</li>
+  </ul>
+</blockquote>
+
+<h3>类型转换</h3>
+
+<p><code>int_to_str</code> 将整数转为字符串，<code>atoi</code> 将字符串转为整数。这两个函数让用户程序无需手动实现数字↔字符串转换。</p>
+
+<pre><code class="language-c"><span class="hljs-keyword">extern</span> <span class="hljs-type">int</span> <span class="hljs-title function_">int_to_str</span><span class="hljs-params">(<span class="hljs-type">int</span> value, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> radix)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span> <span class="hljs-title function_">atoi</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">puts</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">exit</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span>;
+
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> numbuf[<span class="hljs-number">40</span>];
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+{
+    <span class="hljs-comment">/* --- int_to_str: 整数转字符串 --- */</span>
+    <span class="hljs-title function_">int_to_str</span>(<span class="hljs-number">42</span>, numbuf, <span class="hljs-number">10</span>);          <span class="hljs-comment">/* "42"          */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Dec: "</span>); <span class="hljs-title function_">puts</span>(numbuf); <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-title function_">int_to_str</span>(-<span class="hljs-number">123</span>, numbuf, <span class="hljs-number">10</span>);        <span class="hljs-comment">/* "-123"        */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Neg: "</span>); <span class="hljs-title function_">puts</span>(numbuf); <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-title function_">int_to_str</span>(<span class="hljs-number">255</span>, numbuf, <span class="hljs-number">16</span>);         <span class="hljs-comment">/* "ff"          */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Hex: "</span>); <span class="hljs-title function_">puts</span>(numbuf); <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-title function_">int_to_str</span>(<span class="hljs-number">10</span>, numbuf, <span class="hljs-number">2</span>);           <span class="hljs-comment">/* "1010"        */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Bin: "</span>); <span class="hljs-title function_">puts</span>(numbuf); <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-title function_">int_to_str</span>(<span class="hljs-number">511</span>, numbuf, <span class="hljs-number">8</span>);          <span class="hljs-comment">/* "777"         */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Oct: "</span>); <span class="hljs-title function_">puts</span>(numbuf); <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-comment">/* --- atoi: 字符串转整数 --- */</span>
+    <span class="hljs-type">int</span> a = <span class="hljs-title function_">atoi</span>(<span class="hljs-string">"42"</span>);            <span class="hljs-comment">/* 42  */</span>
+    <span class="hljs-type">int</span> b = <span class="hljs-title function_">atoi</span>(<span class="hljs-string">"  -7"</span>);          <span class="hljs-comment">/* -7  */</span>
+    <span class="hljs-type">int</span> c = <span class="hljs-title function_">atoi</span>(<span class="hljs-string">"0x1F"</span>);          <span class="hljs-comment">/* 0   (非十进制, 遇 'x' 停止) */</span>
+    <span class="hljs-type">int</span> d = <span class="hljs-title function_">atoi</span>(<span class="hljs-string">"abc"</span>);           <span class="hljs-comment">/* 0   (无有效数字) */</span>
+
+    <span class="hljs-comment">/* 组合使用: int_to_str + puts 替代 put_int, 可控制输出到文件 */</span>
+    <span class="hljs-type">static</span> <span class="hljs-type">char</span> log[<span class="hljs-number">64</span>];
+    <span class="hljs-title function_">int_to_str</span>(a + b, log, <span class="hljs-number">10</span>);
+    <span class="hljs-comment">/* file_append("log.txt", log, strlen(log)); */</span>
+
+    <span class="hljs-title function_">exit</span>(<span class="hljs-number">0</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}</code></pre>
+
+<blockquote>
+  <p><strong>提示</strong>：<code>int_to_str</code> 比 <code>put_int</code> 更灵活——<code>put_int</code> 只能输出到屏幕，而 <code>int_to_str</code> 把结果写入缓冲区，可用于写文件、字符串拼接等场景。</p>
+</blockquote>
+
+<hr>
+
+<!-- ===== 7. 构建与打包 ===== -->
+<h2 id="sec7">7. 构建与打包</h2>
+
+<h3>构建流程</h3>
+
+<pre><code class="language-plaintext">hello.c ──gcc -m32──→ hello.o ─┐
+                                ├─ gcc -m32 -nostdlib -T user.ld ──→ hello.elf
+crt0.asm ──nasm -f win32──→ crt0.o ─┘                                         │
+                                                                              ▼
+                                                           mkcate.py ──→ hello.ce
+                                                              │
+                                              ┌───────────────┴───────────────┐
+                                              │  解析 ELF/PE 段大小和入口地址   │
+                                              │  objcopy 提取 flat binary       │
+                                              │  生成 64 字节 CE v1 头          │
+                                              │  输出: header(64) + flat_binary │
+                                              └───────────────────────────────────┘</code></pre>
+
+<h3>使用 Makefile</h3>
+
+<pre><code class="language-bash"><span class="hljs-built_in">cd</span> sdk
+make           <span class="hljs-comment"># 构建 hello.ce</span>
+make clean     <span class="hljs-comment"># 清理中间文件</span></code></pre>
+
+<h3>构建自定义程序</h3>
+
+<p>如果要构建名为 <code>myapp.c</code> 的程序，修改 Makefile：</p>
+
+<pre><code class="language-makefile"><span class="hljs-keyword">TARGET</span> <span class="hljs-keyword">:=</span> myapp.ce
+<span class="hljs-keyword">ELF</span>    <span class="hljs-keyword">:=</span> myapp.elf
+<span class="hljs-keyword">APP_O</span>  <span class="hljs-keyword">:=</span> myapp.o
+
+<span class="hljs-title">$(APP_O)</span>: myapp.c
+	$(CC) $(CFLAGS) -c -o $@ $&lt;
+
+<span class="hljs-title">$(ELF)</span>: $(CRT0) $(APP_O) user.ld
+	$(CC) $(LDFLAGS) -o $@ $(CRT0) $(APP_O)</code></pre>
+
+<h3>手动构建（不使用 Makefile）</h3>
+
+<pre><code class="language-bash"><span class="hljs-comment"># 1. 编译 C 源码</span>
+gcc -m32 -ffreestanding -fno-pic -fno-stack-protector -fno-pie \
+    -fno-asynchronous-unwind-tables -c myapp.c -o myapp.o
+
+<span class="hljs-comment"># 2. 汇编 crt0</span>
+nasm -f win32 crt0.asm -o crt0.o
+
+<span class="hljs-comment"># 3. 链接</span>
+gcc -m32 -nostdlib -Wl,-T,user.ld crt0.o myapp.o -o myapp.elf
+
+<span class="hljs-comment"># 4. 打包 CE</span>
+python3 mkcate.py myapp.elf myapp.ce myapp</code></pre>
+
+<h3>mkcate.py 输出说明</h3>
+
+<pre><code>$ python3 mkcate.py hello.elf hello.ce hello
+  entry      = 0x00000001
+  text_size  = 128 bytes
+  data_size  = 32 bytes
+  bss_size   = 16 bytes
+  total_size = 176 bytes
+  name       = hello
+  Output: hello.ce (240 bytes)
+  Format: CE v1 (64B header + 176B body)</code></pre>
+
+<ul>
+  <li><strong>entry</strong>：程序入口偏移（<code>_start</code> 符号的地址）</li>
+  <li><strong>text_size</strong>：<code>.text</code> + <code>.rodata</code>/<code>.rdata</code> 段大小</li>
+  <li><strong>data_size</strong>：<code>.data</code> 段大小</li>
+  <li><strong>bss_size</strong>：<code>.bss</code> 段大小（不在文件中，加载时清零）</li>
+  <li><strong>total_size</strong>：text+data+bss 总大小（校验用）</li>
+</ul>
+
+<hr>
+
+<!-- ===== 8. 在 CatOS 中运行 ===== -->
+<h2 id="sec8">8. 在 CatOS 中运行</h2>
+
+<h3>将程序放入文件系统</h3>
+
+<h4>方法 1：构建时集成（推荐）</h4>
+
+<p>修改构建脚本，将 <code>.ce</code> 文件写入 FAT 文件系统镜像。</p>
+
+<h4>方法 2：使用 CatOS 内置命令</h4>
+
+<p>在 CatOS 中使用 <code>touch</code> 创建空文件，然后用 <code>edit</code> 编辑。但此方法不适合二进制文件。</p>
+
+<h3>运行命令</h3>
+
+<p><strong>文本模式 Shell</strong>：</p>
+
+<pre><code>CatOS&gt; run hello.ce</code></pre>
+
+<p><strong>图形桌面</strong>：</p>
+
+<ol>
+  <li>在 Shell 中输入 <code>cat</code> 进入图形桌面</li>
+  <li>双击文件管理器中的 <code>.ce</code> 文件，或打开终端执行 <code>run hello.ce</code></li>
+  <li>系统会为程序分配独立的控制台窗口，程序输出显示在窗口中</li>
+  <li>程序退出后窗口显示 "Press any key to continue..."，按任意键关闭</li>
+</ol>
+
+<h3>错误信息</h3>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>错误信息</th>
+    <th>原因</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td><code>Usage: run &lt;filename&gt;</code></td><td>未提供文件名</td></tr>
+  <tr><td><code>File not found: xxx</code></td><td>文件不存在于 FAT 文件系统</td></tr>
+  <tr><td><code>Bad executable format (not CE)</code></td><td>文件头 magic 不匹配或文件过小</td></tr>
+  <tr><td><code>Program too large (max 124KB)</code></td><td>程序段总和超过 124KB</td></tr>
+  <tr><td><code>A program is already running</code></td><td>已有用户程序在运行（单槽位限制）</td></tr>
+  <tr><td><code>Corrupted executable</code></td><td>文件损坏（大小校验失败）</td></tr>
+  <tr><td><code>Program crashed (exception #N)</code></td><td>程序触发异常（如 #GP=13, #PF=14）</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>退出码</h3>
+
+<ul>
+  <li>文本模式 Shell：<code>exit(N)</code> → 显示 <code>Program exited (code N)</code></li>
+  <li>图形桌面（控制台窗口）：程序退出后窗口显示 <code>Press any key to continue...</code>，按任意键关闭窗口</li>
+  <li>异常崩溃 → 显示 <code>Program exited (code -N-1)</code>（N 为异常向量号）</li>
+</ul>
+
+<blockquote>
+  <p><strong>注意</strong>：图形桌面下，程序退出后控制台窗口不会立即关闭。内核会显示 "Press any key to continue..." 提示，等待用户按键后才关闭窗口并释放资源。这样用户可以查看程序的最终输出。</p>
+</blockquote>
+
+<h3>窗口关闭行为</h3>
+
+<p>图形桌面下，不同窗口的叉号（×）关闭行为如下：</p>
+
+<ul>
+  <li><strong>应用主窗口（用户控制台窗口）</strong>：点击叉号 → 直接终止进程 + 关闭所有子窗口</li>
+  <li><strong>子窗口（<code>win_create</code> 创建）</strong>：点击叉号 → 默认推送 <code>EV_CLOSE</code> 事件，可用 <code>win_set_closable(win_id, 0)</code> 禁用</li>
+  <li><strong><code>exit(code)</code></strong>：自动关闭所有子窗口 + 终止进程，退出码记录在 <code>exit_code</code></li>
+</ul>
+
+<blockquote>
+  <p><strong>提示</strong>：若需要强制用户完成某项操作后才能关闭子窗口，可在创建窗口后立即调用 <code>win_set_closable(win_id, 0)</code>，操作完成后再调用 <code>win_set_closable(win_id, 1)</code> 重新允许关闭。</p>
+</blockquote>
+
+<hr>
+
+<!-- ===== 9. 限制与注意事项 ===== -->
+<h2 id="sec9">9. 限制与注意事项</h2>
+
+<h3>当前限制（MVP 阶段）</h3>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>限制</th>
+    <th>说明</th>
+    <th>未来计划</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>单程序运行</td>
+    <td>同一时刻只能运行一个用户程序</td>
+    <td>Phase 3: 多进程并发</td>
+  </tr>
+  <tr>
+    <td>128KB 内存上限</td>
+    <td>text+data+bss+stack ≤ 124KB</td>
+    <td>Phase 3: 动态内存分配</td>
+  </tr>
+  <tr>
+    <td>无进程创建</td>
+    <td>无法 fork/exec</td>
+    <td>Phase 5: fork/exec</td>
+  </tr>
+  <tr>
+    <td>无浮点运算</td>
+    <td>FPU 未启用</td>
+    <td>暂无计划</td>
+  </tr>
+  <tr>
+    <td>段隔离（非分页）</td>
+    <td>段限之外的访问触发 #GP</td>
+    <td>Phase 6: 分页隔离</td>
+  </tr>
+  <tr>
+    <td>单次整文件读写</td>
+    <td>无 seek/流式读写，需整文件读入内存</td>
+    <td>未来支持 open/read/write/close</td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+<blockquote>
+  <p><strong>已解决的限制</strong>：</p>
+  <ul>
+    <li><span class="strikethrough">非阻塞键盘输入</span> → 现已有阻塞 <code>getch</code>（返回 16 位键值含扩展键）+ <code>kbhit</code> + <code>get_key_flags</code></li>
+    <li><span class="strikethrough">无文件系统调用</span> → 现已有 <code>file_read</code>/<code>file_write</code>/<code>file_delete</code>/<code>file_exists</code>/<code>file_size</code>/<code>file_list</code></li>
+  </ul>
+</blockquote>
+
+<h3>编程注意事项</h3>
+
+<ol>
+  <li><strong>不要使用标准库</strong>：<code>#include &lt;stdio.h&gt;</code> 不可用，使用 <code>extern</code> 声明 SDK 函数</li>
+  <li><strong>不要使用浮点</strong>：<code>float</code>/<code>double</code> 需要 FPU，CatOS 未初始化</li>
+  <li><strong>不要访问硬件</strong>：<code>in</code>/<code>out</code> 指令会触发 #GP</li>
+  <li><strong>栈大小</strong>：栈从 0x10000 向下生长，可用约 64KB</li>
+  <li><strong>全局变量</strong>：BSS 变量在加载时自动清零，无需手动初始化</li>
+  <li><strong>字符串</strong>：使用全局数组定义字符串</li>
+  <li><strong>不返回 main</strong>：虽然 crt0 会在 main 返回后调用 <code>exit(eax)</code>，但建议显式调用 <code>exit</code></li>
+  <li><strong>图形模式</strong>：系统调用输出自动适配图形模式，无需特殊处理</li>
+  <li><strong>扩展键处理</strong>：<code>getch</code> 返回 16 位键值，用 <code>(key &amp; 0x100)</code> 判断扩展键，<strong>不要</strong> <code>&amp; 0xFF</code> 截断</li>
+  <li><strong>文件 IO 缓冲区</strong>：<code>file_read</code>/<code>file_write</code> 的缓冲区在用户段内，受 128KB 段大小限制</li>
+</ol>
+
+<hr>
+
+<!-- ===== 10. 示例程序详解 ===== -->
+<h2 id="sec10">10. 示例程序详解</h2>
+
+<h3>hello.c（Hello World + 高级 API 演示）</h3>
+
+<pre><code class="language-c"><span class="hljs-comment">/* CatOS Hello World 示例程序 — 演示整数输出、十六进制、延时等高级 API */</span>
+
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">puts</span><span class="hljs-params">(<span class="hljs-type">char</span>* str)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">putc</span><span class="hljs-params">(<span class="hljs-type">int</span> ch)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_int</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_uint</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_hex</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n, <span class="hljs-type">int</span> upper)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_bin</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">msleep</span><span class="hljs-params">(<span class="hljs-type">int</span> ms)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">get_ticks</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">exit</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span>;
+
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> msg1[] = <span class="hljs-string">"Hello, CatOS!\n"</span>;
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> msg2[] = <span class="hljs-string">"This is a user program running in ring 3.\n"</span>;
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> msg3[] = <span class="hljs-string">"System call test: "</span>;
+
+<span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>
+{
+    <span class="hljs-title function_">puts</span>(msg1);
+    <span class="hljs-title function_">puts</span>(msg2);
+    <span class="hljs-title function_">puts</span>(msg3);
+
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'A'</span>);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'B'</span>);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'C'</span>);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-comment">/* 整数输出演示 */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Int:  "</span>);
+    <span class="hljs-title function_">put_int</span>(-<span class="hljs-number">42</span>);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">' '</span>);
+    <span class="hljs-title function_">put_int</span>(<span class="hljs-number">0</span>);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">' '</span>);
+    <span class="hljs-title function_">put_int</span>(<span class="hljs-number">2147483647</span>);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-comment">/* 无符号整数演示 */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"UInt: "</span>);
+    <span class="hljs-title function_">put_uint</span>(<span class="hljs-number">4000000000u</span>);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-comment">/* 十六进制演示 (大写和小写) */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Hex:  0x"</span>);
+    <span class="hljs-title function_">put_hex</span>(<span class="hljs-number">0xDEADBEEFu</span>, <span class="hljs-number">1</span>);
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">" / 0x"</span>);
+    <span class="hljs-title function_">put_hex</span>(<span class="hljs-number">0xdeadbeefu</span>, <span class="hljs-number">0</span>);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-comment">/* 二进制演示 */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Bin:  "</span>);
+    <span class="hljs-title function_">put_bin</span>(<span class="hljs-number">0b10110100</span>);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-comment">/* 延时 + ticks 演示 */</span>
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Delay 500ms...\n"</span>);
+    <span class="hljs-type">int</span> t1 = <span class="hljs-title function_">get_ticks</span>();
+    <span class="hljs-title function_">msleep</span>(<span class="hljs-number">500</span>);
+    <span class="hljs-type">int</span> t2 = <span class="hljs-title function_">get_ticks</span>();
+    <span class="hljs-title function_">puts</span>(<span class="hljs-string">"Ticks elapsed: "</span>);
+    <span class="hljs-title function_">put_int</span>(t2 - t1);
+    <span class="hljs-title function_">putc</span>(<span class="hljs-string">'\n'</span>);
+
+    <span class="hljs-title function_">exit</span>(<span class="hljs-number">42</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}</code></pre>
+
+<p><strong>解析</strong>：</p>
+<ul>
+  <li><code>put_int(-42)</code> 直接输出有符号整数，无需自行实现数字转字符串</li>
+  <li><code>put_hex(0xDEADBEEF, 1)</code> 输出大写十六进制，第二参数为 0 时输出小写</li>
+  <li><code>put_bin(n)</code> 输出二进制表示，适合底层调试</li>
+  <li><code>msleep(500)</code> 延时 500 毫秒（基于 100Hz 时钟，精度 10ms）</li>
+  <li><code>get_ticks()</code> 获取系统滴答数，可用于测量耗时</li>
+</ul>
+
+<h3>crt0.asm（C 运行时启动代码）</h3>
+
+<pre><code class="language-nasm"><span class="hljs-comment">; CatOS User Program C Runtime</span>
+<span class="hljs-comment">; 入口 _start: 设置栈, 调用 main, 调用 exit</span>
+
+<span class="hljs-keyword">INT_VECTOR_SYS_CALL</span> <span class="hljs-built_in">equ</span> <span class="hljs-number">0x90</span>
+<span class="hljs-keyword">NR_exit</span> <span class="hljs-built_in">equ</span> <span class="hljs-number">5</span>
+
+<span class="hljs-keyword">bits</span> <span class="hljs-number">32</span>
+<span class="hljs-title">section</span> <span class="hljs-string">.text</span>
+
+<span class="hljs-keyword">global</span> <span class="hljs-title">_start</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-title">_main</span>
+
+<span class="hljs-title">_start</span>:
+    <span class="hljs-keyword">mov</span>     <span class="hljs-built_in">esp</span>, <span class="hljs-number">0x1000</span>    <span class="hljs-comment">; 设置栈顶（段内偏移）</span>
+    <span class="hljs-keyword">call</span>    <span class="hljs-title">_main</span>          <span class="hljs-comment">; 调用 main()</span>
+    <span class="hljs-keyword">push</span>    <span class="hljs-built_in">eax</span>            <span class="hljs-comment">; main 返回值作为 exit code</span>
+    <span class="hljs-keyword">call</span>    <span class="hljs-title">_exit</span>          <span class="hljs-comment">; 调用 exit（不返回）</span>
+<span class="hljs-title">.hang</span>:
+    <span class="hljs-keyword">jmp</span>     <span class="hljs-title">.hang</span>          <span class="hljs-comment">; exit 不返回, 但以防万一</span></code></pre>
+
+<p><strong>解析</strong>：</p>
+<ul>
+  <li><code>_start</code> 是程序入口（CE header.entry 指向它）</li>
+  <li>设置 <code>esp = 0x1000</code>（栈顶，段内偏移）</li>
+  <li>调用 C 语言的 <code>main</code> 函数</li>
+  <li>main 返回后，将返回值压栈并调用 <code>exit</code></li>
+  <li><code>exit</code> 通过 <code>int 0x90</code> 触发系统调用，内核终止进程并切换回 shell</li>
+</ul>
+
+<h3>user.ld（链接脚本）</h3>
+
+<pre><code><span class="hljs-title">ENTRY</span>(<span class="hljs-title">_start</span>)
+
+<span class="hljs-title">SECTIONS</span>
+{
+    <span class="hljs-selector-class">.</span> = <span class="hljs-number">0</span>;                    <span class="hljs-comment">/* 链接地址 = 0（段内偏移） */</span>
+
+    <span class="hljs-selector-class">.text</span> : {
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.text</span>)
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.text</span>.<span class="hljs-built_in">*</span>)
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.rodata</span>)
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.rodata</span>.<span class="hljs-built_in">*</span>)
+    }
+
+    <span class="hljs-selector-class">.data</span> : {
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.data</span>)
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.data</span>.<span class="hljs-built_in">*</span>)
+    }
+
+    <span class="hljs-selector-class">.bss</span> : {
+        <span class="hljs-built_in">__bss_start</span> = <span class="hljs-selector-class">.</span>;
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.bss</span>)
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.bss</span>.<span class="hljs-built_in">*</span>)
+        <span class="hljs-built_in">*</span>(<span class="hljs-title">COMMON</span>)
+        <span class="hljs-built_in">__bss_end</span> = <span class="hljs-selector-class">.</span>;
+    }
+
+    <span class="hljs-title">/DISCARD/</span> : {
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.comment</span>)
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.note</span><span class="hljs-built_in">*</span>)
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.eh_frame</span><span class="hljs-built_in">*</span>)
+        <span class="hljs-built_in">*</span>(<span class="hljs-selector-class">.eh_frame_hdr</span>)
+    }
+}</code></pre>
+
+<p><strong>解析</strong>：</p>
+<ul>
+  <li><code>. = 0</code> 确保所有符号地址是段内偏移</li>
+  <li><code>.rodata</code> 合并到 <code>.text</code> 段</li>
+  <li>丢弃 <code>.comment</code>、<code>.note</code>、<code>.eh_frame</code> 等无用段</li>
+</ul>
+
+<hr>
+
+<!-- ===== 11. 常见问题 ===== -->
+<h2 id="sec11">11. 常见问题</h2>
+
+<h3>Q: 程序没有输出？</h3>
+
+<p><strong>A</strong>: 请检查以下几点：</p>
+<ol>
+  <li>确保使用 <code>static char msg[] = "..."</code> 全局数组定义字符串</li>
+  <li>确保调用了 <code>puts</code> 或 <code>putc</code></li>
+  <li>确认 CE 文件正确打包（使用 <code>mkcate.py</code>）</li>
+  <li>确认内核已重新编译（<code>bash build.sh all</code>）</li>
+</ol>
+
+<h3>Q: 程序崩溃显示 "Program crashed (exception #13)"？</h3>
+
+<p><strong>A</strong>: 异常 #13 是 #GP（General Protection），常见原因：</p>
+<ul>
+  <li>访问了段外的内存地址（超过 128KB）</li>
+  <li>执行了特权指令（<code>cli</code>、<code>in</code>、<code>out</code> 等）</li>
+  <li>访问了空选择子（GS=0）指向的段</li>
+  <li>栈溢出（esp 超出段限）</li>
+</ul>
+
+<h3>Q: 编译报错 "unknown type name 'size_t'"？</h3>
+
+<p><strong>A</strong>: CatOS SDK 不提供标准头文件。自行定义所需类型：</p>
+
+<pre><code class="language-c"><span class="hljs-keyword">typedef</span> <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> <span class="hljs-type">size_t</span>;</code></pre>
+
+<h3>Q: 如何输出数字？</h3>
+
+<p><strong>A</strong>: CatOS SDK 现在内置了整数输出函数，无需自行实现：</p>
+
+<pre><code class="language-c"><span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_int</span><span class="hljs-params">(<span class="hljs-type">int</span> n)</span>;             <span class="hljs-comment">/* 有符号十进制: -42, 0, 2147483647 */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_uint</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n)</span>;   <span class="hljs-comment">/* 无符号十进制: 4000000000 */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_hex</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n, <span class="hljs-type">int</span> upper)</span>; <span class="hljs-comment">/* 十六进制: put_hex(0xDEAD, 1) -> "DEAD" */</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-type">void</span> <span class="hljs-title function_">put_bin</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n)</span>;    <span class="hljs-comment">/* 二进制: put_bin(5) -> "101" */</span>
+
+<span class="hljs-comment">/* 示例 */</span>
+<span class="hljs-title function_">put_int</span>(-<span class="hljs-number">123</span>);        <span class="hljs-comment">/* 输出: -123 */</span>
+<span class="hljs-title function_">put_hex</span>(<span class="hljs-number">0xFF</span>, <span class="hljs-number">0</span>);     <span class="hljs-comment">/* 输出: ff */</span>
+<span class="hljs-title function_">put_hex</span>(<span class="hljs-number">0xFF</span>, <span class="hljs-number">1</span>);     <span class="hljs-comment">/* 输出: FF */</span>
+<span class="hljs-title function_">put_bin</span>(<span class="hljs-number">10</span>);          <span class="hljs-comment">/* 输出: 1010 */</span></code></pre>
+
+<p>这些函数使用当前 <code>set_color</code> 设定的颜色输出。</p>
+
+<h3>Q: 按方向键/Enter 后程序输出 <code>?</code> 或无反应？</h3>
+
+<p><strong>A</strong>: <code>getch</code> 返回的是 <strong>16 位键值</strong>，扩展键（方向键、Enter、ESC、F1~F12 等）高位带 <code>0x100</code> 标志。如果直接 <code>putc(key)</code> 会把扩展键的低字节当作字符输出，图形模式下非可见字符（&lt;32 或 &gt;127）会显示 <code>?</code>。正确做法是先判断是否为扩展键：</p>
+
+<pre><code class="language-c"><span class="hljs-type">int</span> key = <span class="hljs-title function_">getch</span>();
+<span class="hljs-keyword">if</span> (key &amp; <span class="hljs-number">0x100</span>) {
+    <span class="hljs-comment">/* 扩展键: 0x101=ESC, 0x103=Enter, 0x125=Up ... */</span>
+    <span class="hljs-keyword">switch</span> (key) {
+    <span class="hljs-keyword">case</span> <span class="hljs-number">0x103</span>: <span class="hljs-comment">/* Enter */</span> <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">case</span> <span class="hljs-number">0x125</span>: <span class="hljs-comment">/* Up */</span>    <span class="hljs-keyword">break</span>;
+    <span class="hljs-comment">/* ... */</span>
+    }
+} <span class="hljs-keyword">else</span> {
+    <span class="hljs-title function_">putc</span>(key);  <span class="hljs-comment">/* 普通可见字符才直接输出 */</span>
+}</code></pre>
+
+<p>参见前文「扩展键与 <code>getch</code> 返回值」获取完整键值表。</p>
+
+<h3>Q: 如何读写文件？</h3>
+
+<p><strong>A</strong>: 使用 <code>file_read</code>/<code>file_write</code> 等文件 IO 系统调用（NR 26~32）。文件名为 FAT 8.3 短文件名：</p>
+
+<pre><code class="language-c"><span class="hljs-keyword">extern</span> <span class="hljs-type">int</span> <span class="hljs-title function_">file_write</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> size)</span>;
+<span class="hljs-keyword">extern</span> <span class="hljs-type">int</span> <span class="hljs-title function_">file_read</span><span class="hljs-params">(<span class="hljs-type">char</span>* name, <span class="hljs-type">char</span>* buf, <span class="hljs-type">int</span> bufsize)</span>;
+
+<span class="hljs-type">static</span> <span class="hljs-type">char</span> data[] = <span class="hljs-string">"hello"</span>;
+<span class="hljs-title function_">file_write</span>(<span class="hljs-string">"data.txt"</span>, data, <span class="hljs-number">5</span>);           <span class="hljs-comment">/* 写入 5 字节 */</span>
+
+<span class="hljs-type">char</span> buf[<span class="hljs-number">256</span>];
+<span class="hljs-type">int</span> n = <span class="hljs-title function_">file_read</span>(<span class="hljs-string">"data.txt"</span>, buf, <span class="hljs-number">256</span>);   <span class="hljs-comment">/* 返回读取字节数 */</span></code></pre>
+
+<p>完整示例见第 6 章「文件 IO」小节。注意：仅支持根目录下的文件操作。</p>
+
+<h3>Q: 程序大小超过 124KB 怎么办？</h3>
+
+<p><strong>A</strong>: 当前 MVP 阶段不支持超过 124KB 的程序。优化建议：</p>
+<ul>
+  <li>使用 <code>-Os</code> 编译选项优化代码大小</li>
+  <li>避免大型查找表</li>
+  <li>将数据拆分到外部文件（未来支持文件系统调用后）</li>
+</ul>
+
+<h3>Q: 可以用 C++ 吗？</h3>
+
+<p><strong>A</strong>: 理论上可以（使用 <code>g++ -m32 -fno-exceptions -fno-rtti</code>），但需要额外提供 <code>__cxa_atexit</code> 等运行时函数。当前 SDK 仅支持 C。</p>
+
+<h3>Q: make 找不到 gcc？</h3>
+
+<p><strong>A</strong>: 确认 gcc 在 PATH 中，或修改 Makefile 手动指定路径：</p>
+
+<pre><code class="language-makefile"><span class="hljs-keyword">CC</span> <span class="hljs-keyword">:=</span> /path/to/i686-w64-mingw32-gcc</code></pre>
+
+<hr>
+
+<!-- ===== 12. 未来路线图 ===== -->
+<h2 id="sec12">12. 未来路线图</h2>
+
+<p>CatOS 可执行文件生态的后续发展规划：</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>阶段</th>
+    <th>功能</th>
+    <th>状态</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td><strong>Phase 1</strong></td><td>CE v1 格式 + 基础系统调用 + 单程序运行</td><td>✅ 已完成</td></tr>
+  <tr><td><strong>Phase 2</strong></td><td>键盘输入：<code>getc</code>/<code>getch</code>/<code>kbhit</code> + 扩展键 + 修饰键状态</td><td>✅ 已完成</td></tr>
+  <tr><td><strong>Phase 4</strong></td><td>文件系统系统调用：<code>file_read</code>/<code>file_write</code>/<code>file_delete</code>/<code>file_exists</code>/<code>file_size</code>/<code>file_list</code>/<code>file_append</code>/<code>file_stat</code> + <code>reboot</code></td><td>✅ 已完成</td></tr>
+  <tr><td><strong>Phase 4b</strong></td><td>类型转换：<code>int_to_str</code>（多进制整数转字符串）+ <code>atoi</code>（字符串转整数）</td><td>✅ 已完成</td></tr>
+  <tr><td><strong>Phase 3</strong></td><td>多程序并发 + 多槽位（4 进程独立 128KB 内存区 + 非阻塞 <code>run</code> + <code>ps</code> 命令）</td><td>✅ 已完成</td></tr>
+  <tr><td>Phase 3b</td><td>动态内存分配（进程内堆区 sys_alloc/sys_free）</td><td>📋 计划中</td></tr>
+  <tr><td>Phase 4+</td><td>流式读写（open/read/write/close/seek）</td><td>📋 计划中</td></tr>
+  <tr><td>Phase 5</td><td>fork/exec 进程创建</td><td>📋 计划中</td></tr>
+  <tr><td>Phase 6</td><td>分页隔离（虚拟内存，替换段隔离）</td><td>📋 计划中</td></tr>
+</tbody>
+</table>
+</div>
+
+<hr>
+
+<!-- ===== 附录 ===== -->
+<h2 id="appendix">附录：SDK 文件清单</h2>
+
+<pre><code>sdk/
+├── DEVELOPER.md   ← 本文档
+├── Makefile       ← 构建脚本
+├── mkcate.py      ← CE v1 格式打包工具
+├── crt0.asm       ← C 运行时启动代码
+├── user.ld        ← 链接脚本
+├── hello.c        ← 示例程序
+└── hello_asm.asm  ← 纯汇编示例程序</code></pre>
+
+<p>如需帮助或报告问题，请查阅 CatOS 项目文档或联系开发者。</p>
+
+</div>
+</div>
+
+<!-- ===== Back to Top ===== -->
+<button class="back-to-top" id="backToTopBtn" title="回到顶部">↑</button>
+
+<script>
+(function() {
+  /* === Copy Button === */
+  document.querySelectorAll('pre code').forEach(function(codeBlock) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = '📋';
+    btn.setAttribute('title', '复制代码');
+    var pre = codeBlock.parentElement;
+    pre.appendChild(btn);
+
+    btn.addEventListener('click', function() {
+      var text = codeBlock.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          btn.textContent = '✅';
+          btn.classList.add('copied');
+          setTimeout(function() {
+            btn.textContent = '📋';
+            btn.classList.remove('copied');
+          }, 2000);
+        });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          btn.textContent = '✅';
+          btn.classList.add('copied');
+          setTimeout(function() {
+            btn.textContent = '📋';
+            btn.classList.remove('copied');
+          }, 2000);
+        } catch(e) {}
+        document.body.removeChild(ta);
+      }
+    });
+  });
+
+  /* === Back to Top === */
+  var backBtn = document.getElementById('backToTopBtn');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 300) {
+      backBtn.classList.add('visible');
+    } else {
+      backBtn.classList.remove('visible');
+    }
+  });
+  backBtn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* === Scroll Spy for TOC === */
+  var tocItems = document.querySelectorAll('.sidebar-toc .toc-item');
+  var sections = [];
+  tocItems.forEach(function(item) {
+    var href = item.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      var el = document.getElementById(href.substring(1));
+      if (el) {
+        sections.push({ el: el, link: item });
+      }
+    }
+  });
+
+  function updateTOC() {
+    var scrollY = window.scrollY + 100;
+    var currentId = null;
+    for (var i = 0; i < sections.length; i++) {
+      var s = sections[i];
+      if (s.el.offsetTop <= scrollY) {
+        currentId = s.el.id;
+      } else {
+        break;
+      }
+    }
+    tocItems.forEach(function(item) {
+      item.classList.remove('active');
+      if (currentId && item.getAttribute('href') === '#' + currentId) {
+        item.classList.add('active');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', updateTOC);
+  updateTOC();
+
+  /* === Hamburger Menu === */
+  var hamburger = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+
+  function closeSidebar() {
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+  }
+
+  hamburger.addEventListener('click', function() {
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+  });
+
+  overlay.addEventListener('click', closeSidebar);
+
+  document.querySelectorAll('.sidebar-toc .toc-item').forEach(function(link) {
+    link.addEventListener('click', function() {
+      if (window.innerWidth <= 900) {
+        closeSidebar();
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
