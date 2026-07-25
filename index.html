@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HtmlMaker</title>
+<link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">
+      <img class="brand-mark" id="brandIcon" src="src/img/html5icon.png" alt="HtmlMaker" />
+      <span class="brand-name">HtmlMaker</span>
+    </div>
+    <nav class="page-switch">
+      <button class="tab active" data-page="html">HTML 编辑</button>
+      <button class="tab" data-page="css">CSS 编辑</button>
+      <button class="tab" data-page="js">JS 编辑</button>
+    </nav>
+    <div class="actions">
+      <button class="btn icon-btn" id="btnTheme" title="切换深色/浅色主题">深色</button>
+      <button class="btn" id="btnUndo" title="撤销 (Ctrl+Z)">撤销</button>
+      <button class="btn" id="btnRedo" title="重做 (Ctrl+Y)">重做</button>
+      <button class="btn" id="btnAbout" title="关于 HtmlMaker">关于</button>
+      <button class="btn primary" id="btnExport">导出</button>
+    </div>
+  </header>
+
+  <main id="stage">
+    <!-- HTML 页面 -->
+    <section id="page-html" class="page active">
+      <div class="palette-wrap">
+        <nav class="cat-rail" data-rail-page="html" aria-label="HTML 积木分类"></nav>
+        <aside class="palette" id="paletteHtml"></aside>
+      </div>
+      <section class="ws-col">
+        <div class="ws-toolbar">
+          <label>页面标题</label>
+          <input id="pageTitleInput" type="text" placeholder="未命名页面" />
+        </div>
+        <section class="workspace" id="workspaceHtml"></section>
+      </section>
+      <section class="preview-wrap">
+        <div class="preview-head">
+          <span>HTML 代码</span>
+          <button class="mini" id="btnPreviewToggle" title="切换预览/代码视图">预览</button>
+          <button class="mini" id="btnCopyHtml" title="复制 HTML 代码">复制</button>
+        </div>
+        <pre id="htmlCode" class="code-view"></pre>
+        <iframe id="previewFrame" class="hidden" sandbox="allow-scripts allow-modals allow-forms allow-popups allow-same-origin"></iframe>
+      </section>
+    </section>
+
+    <!-- CSS 页面 -->
+    <section id="page-css" class="page">
+      <div class="palette-wrap">
+        <nav class="cat-rail" data-rail-page="css" aria-label="CSS 积木分类"></nav>
+        <aside class="palette" id="paletteCss"></aside>
+      </div>
+      <section class="workspace" id="workspaceCss"></section>
+      <aside class="css-panel" id="cssPanelCss">
+        <div class="preview-head"><span>生成的 CSS</span></div>
+        <pre id="cssCodeCss" class="code-view"></pre>
+      </aside>
+    </section>
+
+    <!-- JS 页面 -->
+    <section id="page-js" class="page">
+      <div class="palette-wrap">
+        <nav class="cat-rail" data-rail-page="js" aria-label="JS 积木分类"></nav>
+        <aside class="palette" id="paletteJs"></aside>
+      </div>
+      <section class="workspace" id="workspaceJs"></section>
+      <aside class="css-panel" id="jsPanel">
+        <div class="preview-head">
+          <span>生成的 JavaScript</span>
+          <button class="mini" id="btnCopyJs" title="复制 JS 代码">复制</button>
+        </div>
+        <pre id="jsCode" class="code-view"></pre>
+      </aside>
+    </section>
+  </main>
+
+  <!-- 右键上下文菜单 -->
+  <div id="ctxBackdrop" class="ctx-backdrop hidden">
+    <div id="ctxMenu" class="ctx-menu"></div>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div id="exportOverlay" class="overlay hidden">
+    <div class="props-card">
+      <div class="props-head">
+        <span>导出</span>
+        <button class="mini" id="exportClose">关闭</button>
+      </div>
+      <div class="props-body">
+        <div class="export-tabs">
+          <button class="tab active" data-exp="html">完整 HTML</button>
+          <button class="tab" data-exp="css">仅 CSS</button>
+          <button class="tab" data-exp="js">仅 JS</button>
+          <button class="tab" data-exp="json">项目 JSON</button>
+        </div>
+        <pre id="exportCode" class="export-code"></pre>
+        <div class="export-actions">
+          <button class="btn primary" id="exportCopy">复制</button>
+          <button class="btn" id="exportDownload">下载文件</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自定义提示框容器（替代 alert） -->
+  <div id="toastContainer"></div>
+
+  <!-- 积木悬浮提示框（调色板专用） -->
+  <div id="blockTip" class="block-tip hidden"></div>
+
+  <!-- 关于模态框 -->
+  <div id="aboutOverlay" class="overlay hidden">
+    <div class="about-card">
+      <div class="about-icon" id="aboutIcon"></div>
+      <h2 class="about-title">HtmlMaker</h2>
+      <p class="about-subtitle">可视化 HTML / CSS / JavaScript 积木编辑器</p>
+      <div class="about-meta">
+        <div class="about-row"><span class="about-key">项目</span><span class="about-val">HtmlMaker</span></div>
+        <div class="about-row"><span class="about-key">作者</span><span class="about-val">Clean</span></div>
+        <div class="about-row"><span class="about-key">版本</span><span class="about-val">1.1</span></div>
+      </div>
+      <button class="btn primary about-close" id="aboutClose">关闭</button>
+    </div>
+  </div>
+
+  <!-- 欢迎界面（首次使用时显示） -->
+  <div id="welcomeOverlay" class="overlay hidden">
+    <div class="welcome-card">
+      <button class="welcome-skip" id="welcomeSkip" title="跳过引导">跳过</button>
+      <div class="welcome-progress"><span id="welcomeProgress">1 / 12</span></div>
+
+      <!-- 步骤 0：欢迎 -->
+      <div class="welcome-step" data-step="0">
+        <div class="welcome-icon"><img src="src/img/html5icon.png" alt="HtmlMaker" /></div>
+        <h2 class="welcome-title">欢迎使用 HtmlMaker</h2>
+        <p class="welcome-desc">用积木搭建网页，无需写代码。<br/>通过拖拽、组合积木块，即可创建 HTML、CSS、JavaScript 页面。</p>
+        <p class="welcome-tip">本引导共 12 步，将从界面认识到实战示例，带你完整掌握用法。</p>
+      </div>
+
+      <!-- 步骤 1：界面布局 -->
+      <div class="welcome-step hidden" data-step="1">
+        <div class="welcome-illust" id="welcomeIllust1"></div>
+        <h2 class="welcome-title">认识界面布局</h2>
+        <p class="welcome-desc">整个界面分为四个区域：</p>
+        <ul class="welcome-list">
+          <li><b>顶栏</b>：Logo、页面切换标签、撤销/重做、主题、关于、导出</li>
+          <li><b>左侧</b>：分类竖栏 + 积木调色板</li>
+          <li><b>中间</b>：工作区（搭建积木的地方）</li>
+          <li><b>右侧</b>：代码预览 / 渲染预览面板</li>
+        </ul>
+        <p class="welcome-tip">HTML 页的工作区顶部还有「页面标题」输入框，可设置网页标题。</p>
+      </div>
+
+      <!-- 步骤 2：三页架构 -->
+      <div class="welcome-step hidden" data-step="2">
+        <div class="welcome-illust" id="welcomeIllust2"></div>
+        <h2 class="welcome-title">三页编辑，各司其职</h2>
+        <p class="welcome-desc">顶部切换 <b>HTML / CSS / JS</b> 三个编辑页：</p>
+        <ul class="welcome-list">
+          <li><b>HTML 页</b>：搭建页面结构（容器、文本、媒体、表单、列表、表格）</li>
+          <li><b>CSS 页</b>：编写样式（选择器 + 样式属性积木）</li>
+          <li><b>JS 页</b>：添加交互（事件、控制流、DOM、运算、字符串等）</li>
+        </ul>
+        <p class="welcome-tip">三个页面互相独立，切换时数据自动保存，可随时来回切换。</p>
+      </div>
+
+      <!-- 步骤 3：调色板与分类竖栏 -->
+      <div class="welcome-step hidden" data-step="3">
+        <div class="welcome-illust" id="welcomeIllust3"></div>
+        <h2 class="welcome-title">调色板与分类导航</h2>
+        <p class="welcome-desc">左侧调色板按分类展示所有可用积木：</p>
+        <ul class="welcome-list">
+          <li>最左侧 <b>竖栏</b>：分类图标+文字，点击快速跳转到对应分类</li>
+          <li>中间 <b>积木列表</b>：显示该分类下所有积木</li>
+          <li>顶部 <b>搜索框</b>：输入关键词（如「按钮」「颜色」）快速查找</li>
+        </ul>
+        <p class="welcome-tip">鼠标悬停积木可查看用途说明；竖栏图标会高亮当前分类。</p>
+      </div>
+
+      <!-- 步骤 4：拖拽添加积木 -->
+      <div class="welcome-step hidden" data-step="4">
+        <div class="welcome-illust" id="welcomeIllust4"></div>
+        <h2 class="welcome-title">拖拽添加积木</h2>
+        <p class="welcome-desc"><b>按住</b>左侧调色板里的积木，<b>拖动</b>到中间工作区：</p>
+        <ul class="welcome-list">
+          <li>拖到工作区<b>空白处</b>：作为顶级积木</li>
+          <li>拖到某个容器积木<b>内部</b>：作为子积木（嵌套）</li>
+          <li>拖到两个积木<b>之间</b>：插入到该位置（出现半透明预览）</li>
+        </ul>
+        <p class="welcome-tip">注意：单击积木<b>不会</b>添加，必须拖拽。拖动时会显示半透明预览。</p>
+      </div>
+
+      <!-- 步骤 5：内联参数编辑 -->
+      <div class="welcome-step hidden" data-step="5">
+        <div class="welcome-illust" id="welcomeIllust5"></div>
+        <h2 class="welcome-title">在积木内编辑参数</h2>
+        <p class="welcome-desc">很多积木带有<b>内联输入框</b>，点击即可编辑：</p>
+        <ul class="welcome-list">
+          <li><b>HTML 链接积木</b>：可输入 href 链接地址、target 打开方式</li>
+          <li><b>JS 事件积木</b>：可输入选择器（如 <code>#btn</code>）</li>
+          <li><b>变量积木</b>：可输入变量名和值</li>
+          <li><b>运算积木</b>：可输入 A、B 两个操作数，结果存入指定变量</li>
+        </ul>
+        <p class="welcome-tip">输入框有灰色占位符提示格式，如 <code>#btn</code>、<code>1000</code>、<code>hello</code>。参数会自动替换到生成的代码中。</p>
+      </div>
+
+      <!-- 步骤 6：嵌套、移动与删除 -->
+      <div class="welcome-step hidden" data-step="6">
+        <div class="welcome-illust" id="welcomeIllust6"></div>
+        <h2 class="welcome-title">嵌套、移动与删除</h2>
+        <p class="welcome-desc">积木可以层层嵌套，构建复杂结构：</p>
+        <ul class="welcome-list">
+          <li><b>容器积木</b>（div、section、ul 等）可放入子标签</li>
+          <li><b>拖动已有积木</b>到新位置可重新排列或改变嵌套关系</li>
+          <li><b>拖回左侧调色板</b>：删除该积木</li>
+          <li><b>选中积木</b>后按 <code>Delete</code> 键：删除</li>
+        </ul>
+        <p class="welcome-tip">不兼容的嵌套会自动提示并拒绝（如把视频属性放进段落）。</p>
+      </div>
+
+      <!-- 步骤 7：右键菜单 -->
+      <div class="welcome-step hidden" data-step="7">
+        <div class="welcome-illust" id="welcomeIllust7"></div>
+        <h2 class="welcome-title">右键菜单：更多操作</h2>
+        <p class="welcome-desc"><b>右键</b>点击积木或工作区，打开自定义菜单：</p>
+        <ul class="welcome-list">
+          <li><b>复制 / 粘贴 / 原地复制</b>：快速克隆积木</li>
+          <li><b>删除</b>：移除当前积木</li>
+          <li><b>编辑标签属性</b>：href、src、placeholder、type 等</li>
+          <li><b>编辑样式</b>：颜色、尺寸、边距、定位、悬停样式</li>
+          <li><b>编辑文本内容</b>：直接输入段落、标题、按钮文字</li>
+        </ul>
+        <p class="welcome-tip">点击页面其他位置或按 <code>Esc</code> 关闭菜单。不同类型积木的菜单选项不同。</p>
+      </div>
+
+      <!-- 步骤 8：过渡到交互式引导 -->
+      <div class="welcome-step hidden" data-step="8">
+        <div class="welcome-illust" id="welcomeIllust8"></div>
+        <h2 class="welcome-title">接下来：实操练习</h2>
+        <p class="welcome-desc">理论部分结束，现在跟着引导<b>实际操作</b>一遍：</p>
+        <ul class="welcome-list">
+          <li>切换 HTML / CSS / JS 三个编辑页</li>
+          <li>从调色板拖一个积木到工作区</li>
+          <li>体验真实的拖拽与搭建流程</li>
+        </ul>
+        <p class="welcome-tip">点击「开始实操」进入交互式引导，高亮元素会指引你每一步操作。</p>
+      </div>
+
+      <!-- 步骤 9：CSS 样式编辑 -->
+      <div class="welcome-step hidden" data-step="9">
+        <div class="welcome-illust" id="welcomeIllust9"></div>
+        <h2 class="welcome-title">CSS 样式编辑</h2>
+        <p class="welcome-desc">切换到 <b>CSS 页</b>，用积木搭建样式规则：</p>
+        <ul class="welcome-list">
+          <li>先拖入<b>选择器</b>（标签 / 类 / ID）作为起点</li>
+          <li>再拖入<b>样式属性积木</b>（颜色、尺寸、边距、定位等）</li>
+          <li>点击属性积木内的输入框修改值（颜色用取色器）</li>
+          <li>右侧实时显示生成的 CSS 代码</li>
+        </ul>
+        <p class="welcome-tip">样式属性积木必须放在选择器内，像 CSS 规则 <code>{ 属性: 值 }</code> 一样。多个选择器互相独立。</p>
+      </div>
+
+      <!-- 步骤 10：JS 交互编辑 -->
+      <div class="welcome-step hidden" data-step="10">
+        <div class="welcome-illust" id="welcomeIllust10"></div>
+        <h2 class="welcome-title">JS 交互编辑</h2>
+        <p class="welcome-desc">切换到 <b>JS 页</b>，用积木搭建 JavaScript 逻辑：</p>
+        <ul class="welcome-list">
+          <li><b>事件积木</b>（页面加载、点击、输入）作为顶级起点</li>
+          <li><b>控制流</b>（如果、循环、判断分支）可嵌套子语句</li>
+          <li><b>运算 / 字符串 / 数组 / 对象 / JSON</b> 等分类提供丰富操作</li>
+          <li><b>DOM 操作</b>修改元素，<b>输出</b>积木打印日志/弹窗</li>
+        </ul>
+        <p class="welcome-tip">事件积木只能放顶层；「等待 N 秒」需放在事件内才会暂停后续代码；运算/字符串结果会存入你指定的变量。</p>
+      </div>
+
+      <!-- 步骤 11：预览、导出与快捷键 -->
+      <div class="welcome-step hidden" data-step="11">
+        <div class="welcome-illust" id="welcomeIllust11"></div>
+        <h2 class="welcome-title">预览、导出与快捷键</h2>
+        <p class="welcome-desc">完成搭建后，可以预览、导出和高效操作：</p>
+        <ul class="welcome-list">
+          <li>右侧 <b>「预览」</b>按钮：切换到渲染视图（含 JS 执行）</li>
+          <li><b>「复制」</b>按钮：复制生成的代码</li>
+          <li>右上角 <b>「导出」</b>：完整 HTML / 仅 CSS / 仅 JS / 项目 JSON</li>
+          <li><b>Ctrl+Z / Ctrl+Y</b>：撤销 / 重做　<code>Ctrl+C/V/D</code>：复制/粘贴/原地复制</li>
+          <li><b>Delete</b>：删除选中积木　<code>Ctrl+S</code>：手动保存</li>
+        </ul>
+        <p class="welcome-tip">项目数据自动保存到浏览器本地，刷新不丢失。准备好了？点击「开始使用」开启你的积木编程之旅！</p>
+      </div>
+
+      <div class="welcome-dots">
+        <span class="welcome-dot active" data-go="0"></span>
+        <span class="welcome-dot" data-go="1"></span>
+        <span class="welcome-dot" data-go="2"></span>
+        <span class="welcome-dot" data-go="3"></span>
+        <span class="welcome-dot" data-go="4"></span>
+        <span class="welcome-dot" data-go="5"></span>
+        <span class="welcome-dot" data-go="6"></span>
+        <span class="welcome-dot" data-go="7"></span>
+        <span class="welcome-dot" data-go="8"></span>
+        <span class="welcome-dot" data-go="9"></span>
+        <span class="welcome-dot" data-go="10"></span>
+        <span class="welcome-dot" data-go="11"></span>
+      </div>
+      <div class="welcome-actions">
+        <button class="btn welcome-prev hidden" id="welcomePrev">上一步</button>
+        <button class="btn primary welcome-next" id="welcomeNext">下一步</button>
+        <button class="btn primary welcome-start hidden" id="welcomeStart">开始使用</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 交互式引导层（教练模式） -->
+  <div id="coachLayer" class="coach-layer hidden">
+    <div class="coach-highlight" id="coachHighlight"></div>
+    <div class="coach-card" id="coachCard">
+      <div class="coach-step-num" id="coachStepNum">1 / 4</div>
+      <h3 class="coach-title" id="coachTitle"></h3>
+      <p class="coach-desc" id="coachDesc"></p>
+      <div class="coach-actions">
+        <button class="btn coach-skip" id="coachSkip">跳过实操</button>
+        <button class="btn primary coach-next hidden" id="coachNext">下一步</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/blocks.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/props.js"></script>
+  <script src="js/compile.js"></script>
+  <script src="js/preview.js"></script>
+  <script src="js/cssPage.js"></script>
+  <script src="js/jsPage.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
